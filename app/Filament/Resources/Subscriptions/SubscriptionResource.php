@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\Subscriptions;
 
 use App\Filament\Resources\Concerns\HasRoleNavigation;
+use App\Filament\Resources\Subscriptions\Infolists\SubscriptionInfolist;
 use App\Filament\Resources\Subscriptions\Pages\CreateSubscription;
 use App\Filament\Resources\Subscriptions\Pages\EditSubscription;
 use App\Filament\Resources\Subscriptions\Pages\ListSubscriptions;
+use App\Filament\Resources\Subscriptions\Pages\ViewSubscription;
 use App\Filament\Resources\Subscriptions\Schemas\SubscriptionForm;
 use App\Filament\Resources\Subscriptions\Tables\SubscriptionsTable;
 use App\Models\Subscription;
@@ -39,6 +41,11 @@ class SubscriptionResource extends Resource
         return SubscriptionsTable::configure($table);
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return SubscriptionInfolist::configure($schema);
+    }
+
     public static function getRelations(): array
     {
         return [
@@ -52,6 +59,7 @@ class SubscriptionResource extends Resource
             'index' => ListSubscriptions::route('/'),
             'create' => CreateSubscription::route('/create'),
             'edit' => EditSubscription::route('/{record}/edit'),
+            'view' => ViewSubscription::route('/{record}'),
         ];
     }
 }

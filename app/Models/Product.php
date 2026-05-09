@@ -9,7 +9,12 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['cafe_id','category_id','name','description','price','cost','stock','sku','image_url','is_active'];
+    protected $fillable = ['cafe_id', 'category_id', 'name', 'description', 'price', 'cost', 'stock', 'sku', 'image_url', 'is_active', 'has_variants', 'variants'];
+
+    protected $casts = [
+        'has_variants' => 'boolean',
+        'variants' => 'array',
+    ];
 
     public function cafe()
     {

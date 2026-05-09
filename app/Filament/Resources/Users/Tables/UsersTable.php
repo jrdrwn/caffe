@@ -14,12 +14,36 @@ class UsersTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')->searchable()->sortable(),
-                TextColumn::make('email')->searchable(),
-                TextColumn::make('role')->badge(),
-                TextColumn::make('cafe.name')->label('Cafe')->toggleable(),
-                TextColumn::make('is_active')->formatStateUsing(fn (bool $state): string => $state ? 'Active' : 'Inactive'),
-                TextColumn::make('created_at')->dateTime()->sortable(),
+                TextColumn::make('name')
+                    ->label('Nama')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('email')
+                    ->label('Email')
+                    ->searchable()
+                    ->copyable()
+                    ->copyMessage('Email disalin'),
+                TextColumn::make('role')
+                    ->label('Role')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'super_admin' => 'Super Admin',
+                        'manager' => 'Manager',
+                        'cashier' => 'Cashier',
+                        default => 'Admin',
+                    }),
+                TextColumn::make('cafe.name')
+                    ->label('Cafe')
+                    ->toggleable(),
+                TextColumn::make('is_active')
+                    ->label('Status')
+                    ->badge()
+                    ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Nonaktif')
+                    ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
+                TextColumn::make('created_at')
+                    ->label('Dibuat')
+                    ->dateTime('d M Y, H:i')
+                    ->sortable(),
             ])
             ->filters([])
             ->recordActions([

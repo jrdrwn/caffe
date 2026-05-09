@@ -94,11 +94,21 @@ class Dashboard extends Page
      */
     protected function buildRecentTransactions(string $role, ?int $cafeId, int $userId): array
     {
-        if ($role === 'super_admin') {
-            return [];
-        }
-
         $query = Transaction::query()->with('cashier:id,name');
+
+        if ($role === 'super_admin') {
+            return $query
+                ->latest('id')
+                ->limit(5)
+                ->get()
+                ->map(fn (Transaction $transaction): array => [
+                    'transaction_number' => $transaction->transaction_number,
+                    'total' => 'Rp '.number_format((int) $transaction->total_amount, 0, ',', '.'),
+                    'status' => ucfirst($transaction->status),
+                    'cashier' => $transaction->cashier?->name ?? '-',
+                ])
+                ->all();
+        }
 
         if ($role === 'manager' && filled($cafeId)) {
             $query->where('cafe_id', $cafeId);

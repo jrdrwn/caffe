@@ -16,17 +16,42 @@ class ProductsTable
     {
         return $table
             ->columns([
-                ImageColumn::make('image_url')->label('Image')->rounded()->size(48),
-                TextColumn::make('name')->searchable()->sortable()->label('Name'),
-                TextColumn::make('sku')->label('SKU')->sortable(),
-                TextColumn::make('price')->label('Price')->sortable(),
-                TextColumn::make('stock')->label('Stock')->sortable(),
-                BadgeColumn::make('is_active')->label('Status')->formatStateUsing(function ($state) {
-                    return $state ? 'Active' : 'Inactive';
-                })->colors([
-                    'primary' => 1,
-                    'secondary' => 0,
-                ]),
+                ImageColumn::make('image_url')
+                    ->label('Gambar')
+                    ->rounded()
+                    ->size(48),
+                TextColumn::make('name')
+                    ->label('Nama Produk')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('sku')
+                    ->label('SKU')
+                    ->sortable()
+                    ->placeholder('-'),
+                TextColumn::make('price')
+                    ->label('Harga')
+                    ->sortable()
+                    ->formatStateUsing(fn ($state): string => 'Rp '.number_format((int) $state, 0, ',', '.')),
+                TextColumn::make('stock')
+                    ->label('Stok')
+                    ->sortable()
+                    ->badge()
+                    ->formatStateUsing(fn ($state): string => (string) $state)
+                    ->color(fn ($state): string => (int) $state <= 5 ? 'warning' : 'success'),
+                BadgeColumn::make('is_active')
+                    ->label('Status')
+                    ->formatStateUsing(fn ($state): string => $state ? 'Aktif' : 'Nonaktif')
+                    ->colors([
+                        'success' => true,
+                        'gray' => false,
+                    ]),
+                BadgeColumn::make('has_variants')
+                    ->label('Varian')
+                    ->formatStateUsing(fn ($state): string => $state ? 'Ada Varian' : '-')
+                    ->colors([
+                        'primary' => true,
+                        'gray' => false,
+                    ]),
             ])
             ->filters([
                 // future filters (category, price range)

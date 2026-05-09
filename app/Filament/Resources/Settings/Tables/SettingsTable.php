@@ -14,10 +14,22 @@ class SettingsTable
     {
         return $table
             ->columns([
-                TextColumn::make('key')->searchable()->sortable(),
-                TextColumn::make('value')->limit(40),
-                TextColumn::make('is_active')->formatStateUsing(fn (bool $state): string => $state ? 'Active' : 'Inactive'),
-                TextColumn::make('updated_at')->dateTime()->sortable(),
+                TextColumn::make('key')
+                    ->label('Key')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('value')
+                    ->label('Value')
+                    ->limit(60),
+                TextColumn::make('is_active')
+                    ->label('Status')
+                    ->badge()
+                    ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Nonaktif')
+                    ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
+                TextColumn::make('updated_at')
+                    ->label('Diperbarui')
+                    ->dateTime('d M Y, H:i')
+                    ->sortable(),
             ])
             ->filters([])
             ->recordActions([

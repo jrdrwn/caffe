@@ -49,7 +49,7 @@ class UserResource extends Resource
 
         if ($user?->role === 'manager' && filled($user->cafe_id)) {
             return $query->where(function (Builder $builder) use ($user): void {
-                $builder->where('cafe_id', $user->cafe_id)->orWhereKey($user->id);
+                $builder->where('cafe_id', $user->cafe_id)->orWhere('id', $user->id);
             });
         }
 

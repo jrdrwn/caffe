@@ -5,7 +5,7 @@ namespace App\Filament\Resources\Users\Schemas;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Hash;
 
@@ -15,25 +15,61 @@ class UserForm
     {
         return $schema
             ->components([
-                Grid::make(2)->schema([
-                    TextInput::make('name')->required()->label('Name'),
-                    TextInput::make('email')->email()->required()->label('Email'),
-                    TextInput::make('phone')->label('Phone'),
-                    Select::make('role')->options([
-                        'admin' => 'Admin',
-                        'super_admin' => 'Super Admin',
-                        'manager' => 'Manager',
-                        'cashier' => 'Cashier',
-                    ])->required(),
-                    Select::make('cafe_id')->relationship('cafe', 'name')->label('Cafe'),
-                    Toggle::make('is_active')->label('Active'),
-                    TextInput::make('password')
-                        ->password()
-                        ->revealable()
-                        ->required(fn (string $operation): bool => $operation === 'create')
-                        ->dehydrated(fn (?string $state): bool => filled($state))
-                        ->dehydrateStateUsing(fn (string $state): string => Hash::make($state)),
-                ]),
+                Section::make('Informasi Akun')
+                    ->description('Data dasar akun yang akan tampil di sistem dan riwayat aktivitas.')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('name')
+                            ->label('Nama')
+                            ->placeholder('Nama pengguna')
+                            ->required()
+                            ->maxLength(255),
+                        TextInput::make('email')
+                            ->label('Email')
+                            ->placeholder('nama@domain.com')
+                            ->email()
+                            ->required()
+                            ->maxLength(255),
+                        TextInput::make('phone')
+                            ->label('Nomor Telepon')
+                            ->placeholder('08xxxxxxxxxx')
+                            ->tel()
+                            ->maxLength(20),
+                        Toggle::make('is_active')
+                            ->label('Akun Aktif')
+                            ->helperText('Nonaktifkan jika akun tidak boleh login sementara.'),
+                    ]),
+                Section::make('Hak Akses & Keamanan')
+                    ->description('Atur role, cakupan cafe, dan kata sandi akun.')
+                    ->columns(2)
+                    ->schema([
+                        Select::make('role')
+                            ->label('Role')
+                            ->options([
+                                'admin' => 'Admin',
+                                'super_admin' => 'Super Admin',
+                                'manager' => 'Manager',
+                                'cashier' => 'Cashier',
+                            ])
+                            ->required()
+                            ->helperText('Role menentukan menu dan data yang dapat diakses.'),
+                        Select::make('cafe_id')
+                            ->label('Cafe')
+                            ->relationship('cafe', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->helperText('Wajib untuk manager dan cashier yang terikat pada cafe tertentu.'),
+                        TextInput::make('password')
+                            ->label('Password')
+                            ->password()
+                            ->revealable()
+                            ->autocomplete('new-password')
+                            ->required(fn (string $operation): bool => $operation === 'create')
+                            ->dehydrated(fn (?string $state): bool => filled($state))
+                            ->dehydrateStateUsing(fn (string $state): string => Hash::make($state))
+                            ->helperText('Kosongkan saat edit jika password tidak ingin diubah.')
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
 }

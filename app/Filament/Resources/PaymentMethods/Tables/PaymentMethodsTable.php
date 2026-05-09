@@ -14,10 +14,27 @@ class PaymentMethodsTable
     {
         return $table
             ->columns([
-                TextColumn::make('cafe.name')->label('Cafe')->searchable()->sortable(),
-                TextColumn::make('name')->searchable()->sortable(),
-                TextColumn::make('type')->badge(),
-                TextColumn::make('is_active')->formatStateUsing(fn (bool $state): string => $state ? 'Active' : 'Inactive'),
+                TextColumn::make('cafe.name')
+                    ->label('Cafe')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('name')
+                    ->label('Metode')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('type')
+                    ->label('Jenis')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'cash' => 'Tunai',
+                        'debit' => 'Debit / Kartu',
+                        default => 'QRIS',
+                    }),
+                TextColumn::make('is_active')
+                    ->label('Status')
+                    ->badge()
+                    ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Nonaktif')
+                    ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
             ])
             ->filters([])
             ->recordActions([

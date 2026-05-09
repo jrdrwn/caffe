@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Subscriptions\Pages;
 use App\Filament\Resources\Subscriptions\SubscriptionResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Support\Facades\Auth;
 
 class ListSubscriptions extends ListRecords
 {
@@ -12,8 +13,14 @@ class ListSubscriptions extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [
-            CreateAction::make(),
-        ];
+        $role = Auth::user()?->role;
+
+        if (is_string($role) && in_array($role, ['admin', 'super_admin'], true)) {
+            return [
+                CreateAction::make(),
+            ];
+        }
+
+        return [];
     }
 }

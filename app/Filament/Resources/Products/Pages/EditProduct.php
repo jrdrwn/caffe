@@ -16,4 +16,13 @@ class EditProduct extends EditRecord
             DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        if (! ($data['has_variants'] ?? false)) {
+            $data['variants'] = null;
+        }
+
+        return $data;
+    }
 }

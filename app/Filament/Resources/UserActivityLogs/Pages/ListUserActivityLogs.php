@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\UserActivityLogs\Pages;
 
 use App\Filament\Resources\UserActivityLogs\UserActivityLogResource;
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListUserActivityLogs extends ListRecords
@@ -12,8 +11,6 @@ class ListUserActivityLogs extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [
-            CreateAction::make(),
-        ];
+        return [];
     }
 }

@@ -14,10 +14,22 @@ class CategoriesTable
     {
         return $table
             ->columns([
-                TextColumn::make('cafe.name')->label('Cafe')->sortable()->searchable(),
-                TextColumn::make('name')->searchable()->sortable(),
-                TextColumn::make('display_order')->sortable(),
-                TextColumn::make('is_active')->formatStateUsing(fn (bool $state): string => $state ? 'Active' : 'Inactive'),
+                TextColumn::make('cafe.name')
+                    ->label('Cafe')
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make('name')
+                    ->label('Kategori')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('display_order')
+                    ->label('Urutan')
+                    ->sortable(),
+                TextColumn::make('is_active')
+                    ->label('Status')
+                    ->badge()
+                    ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Nonaktif')
+                    ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
             ])
             ->filters([])
             ->recordActions([

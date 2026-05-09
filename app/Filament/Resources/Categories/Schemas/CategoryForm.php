@@ -7,7 +7,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class CategoryForm
@@ -16,14 +16,44 @@ class CategoryForm
     {
         return $schema
             ->components([
-                Grid::make(2)->schema([
-                    Select::make('cafe_id')->relationship('cafe', 'name')->required()->label('Cafe'),
-                    TextInput::make('name')->required()->label('Category Name'),
-                    TextInput::make('display_order')->numeric()->default(0)->label('Display Order'),
-                    Toggle::make('is_active')->label('Active'),
-                    FileUpload::make('image_url')->image()->label('Image'),
-                    Textarea::make('description')->label('Description')->columnSpanFull(),
-                ]),
+                Section::make('Identitas Kategori')
+                    ->description('Atur kategori agar mudah dipilih di produk dan POS.')
+                    ->columns(2)
+                    ->schema([
+                        Select::make('cafe_id')
+                            ->label('Cafe')
+                            ->relationship('cafe', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                        TextInput::make('name')
+                            ->label('Nama Kategori')
+                            ->required()
+                            ->placeholder('Contoh: Makanan Berat')
+                            ->maxLength(255),
+                        TextInput::make('display_order')
+                            ->label('Urutan Tampil')
+                            ->numeric()
+                            ->default(0)
+                            ->minValue(0),
+                        Toggle::make('is_active')
+                            ->label('Aktif')
+                            ->helperText('Kategori nonaktif tidak dipakai pada daftar input produk.'),
+                    ]),
+                Section::make('Tampilan Kategori')
+                    ->description('Tambahkan visual untuk membantu operator mengenali kategori dengan cepat.')
+                    ->columns(2)
+                    ->schema([
+                        FileUpload::make('image_url')
+                            ->label('Gambar')
+                            ->image()
+                            ->directory('categories')
+                            ->columnSpanFull(),
+                        Textarea::make('description')
+                            ->label('Deskripsi')
+                            ->rows(4)
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
 }

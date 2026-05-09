@@ -1,156 +1,78 @@
 <x-filament-panels::page>
-    <div class="dashboard-shell">
-        <section class="dashboard-hero">
-            <div>
-                <p class="dashboard-eyebrow">Ringkasan Hari Ini</p>
-                <h2 class="dashboard-title">Dashboard {{ $this->roleLabel }}</h2>
-                <p class="dashboard-subtitle">Data disesuaikan dengan hak akses akun yang sedang login.</p>
+    <div class="space-y-6">
+        <x-filament::section>
+            <x-slot name="heading">
+                Ringkasan {{ $this->roleLabel }}
+            </x-slot>
+
+            <x-slot name="description">
+                Data langsung dari sistem sesuai hak akses akun yang sedang login.
+            </x-slot>
+
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                @foreach ($this->statsCards as $card)
+                    <x-filament::section>
+                        <x-slot name="heading">
+                            {{ $card['label'] }}
+                        </x-slot>
+
+                        <div class="text-2xl font-semibold text-gray-950 dark:text-white">
+                            {{ $card['value'] }}
+                        </div>
+                    </x-filament::section>
+                @endforeach
             </div>
-        </section>
+        </x-filament::section>
 
-        <section class="dashboard-cards">
-            @foreach ($this->statsCards as $card)
-                <article class="dashboard-card">
-                    <p class="dashboard-card-label">{{ $card['label'] }}</p>
-                    <p class="dashboard-card-value">{{ $card['value'] }}</p>
-                </article>
-            @endforeach
-        </section>
+        <x-filament::section>
+            <x-slot name="heading">
+                Transaksi Terbaru
+            </x-slot>
 
-        <section class="dashboard-section">
-            <div class="dashboard-section-head">
-                <h3>Transaksi Terbaru</h3>
-            </div>
+            <x-slot name="description">
+                Lima transaksi terakhir yang bisa diakses oleh role ini.
+            </x-slot>
 
-            @if (count($this->recentTransactions) === 0)
-                <p class="dashboard-empty">Belum ada transaksi yang dapat ditampilkan untuk role ini.</p>
-            @else
-                <div class="dashboard-table-wrap">
-                    <table class="dashboard-table">
-                        <thead>
+            @if (count($this->recentTransactions) > 0)
+                <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                             <tr>
-                                <th>No. Transaksi</th>
-                                <th>Kasir</th>
-                                <th>Status</th>
-                                <th>Total</th>
+                                <th class="px-4 py-3 text-left font-medium">No. Transaksi</th>
+                                <th class="px-4 py-3 text-left font-medium">Kasir</th>
+                                <th class="px-4 py-3 text-left font-medium">Status</th>
+                                <th class="px-4 py-3 text-right font-medium">Total</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach ($this->recentTransactions as $row)
                                 <tr>
-                                    <td>{{ $row['transaction_number'] }}</td>
-                                    <td>{{ $row['cashier'] }}</td>
-                                    <td>{{ $row['status'] }}</td>
-                                    <td>{{ $row['total'] }}</td>
+                                    <td class="px-4 py-3 font-medium text-gray-950 dark:text-white">
+                                        {{ $row['transaction_number'] }}
+                                    </td>
+                                    <td class="px-4 py-3 text-gray-600 dark:text-gray-300">
+                                        {{ $row['cashier'] }}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <x-filament::badge
+                                            :color="$row['status'] === 'Completed' ? 'success' : ($row['status'] === 'Pending' ? 'warning' : 'danger')"
+                                        >
+                                            {{ $row['status'] }}
+                                        </x-filament::badge>
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-medium text-gray-950 dark:text-white">
+                                        {{ $row['total'] }}
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
+            @else
+                <div class="rounded-xl border border-dashed border-gray-300 px-6 py-10 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                    Belum ada transaksi yang bisa ditampilkan untuk role ini.
+                </div>
             @endif
-        </section>
+        </x-filament::section>
     </div>
-
-    <style>
-        .dashboard-shell {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .dashboard-hero {
-            border: 1px solid rgba(148, 163, 184, 0.25);
-            border-radius: 1rem;
-            padding: 1rem 1.25rem;
-            background: linear-gradient(135deg, rgba(14, 116, 144, 0.14), rgba(20, 184, 166, 0.08));
-        }
-
-        .dashboard-eyebrow {
-            font-size: 0.75rem;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            opacity: 0.75;
-            margin: 0;
-        }
-
-        .dashboard-title {
-            margin: 0.25rem 0 0;
-            font-size: 1.4rem;
-            font-weight: 700;
-        }
-
-        .dashboard-subtitle {
-            margin: 0.35rem 0 0;
-            opacity: 0.75;
-        }
-
-        .dashboard-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 0.75rem;
-        }
-
-        .dashboard-card {
-            border: 1px solid rgba(148, 163, 184, 0.25);
-            border-radius: 0.9rem;
-            padding: 0.9rem 1rem;
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .dashboard-card-label {
-            margin: 0;
-            font-size: 0.8rem;
-            opacity: 0.72;
-        }
-
-        .dashboard-card-value {
-            margin: 0.25rem 0 0;
-            font-size: 1.15rem;
-            font-weight: 700;
-        }
-
-        .dashboard-section {
-            border: 1px solid rgba(148, 163, 184, 0.25);
-            border-radius: 0.9rem;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .dashboard-section-head {
-            padding: 0.8rem 1rem;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
-        }
-
-        .dashboard-section-head h3 {
-            margin: 0;
-            font-size: 1rem;
-        }
-
-        .dashboard-empty {
-            margin: 0;
-            padding: 1rem;
-            opacity: 0.72;
-        }
-
-        .dashboard-table-wrap {
-            overflow-x: auto;
-        }
-
-        .dashboard-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-
-        .dashboard-table th,
-        .dashboard-table td {
-            text-align: left;
-            padding: 0.7rem 1rem;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
-            white-space: nowrap;
-        }
-
-        .dashboard-table tbody tr:last-child td {
-            border-bottom: 0;
-        }
-    </style>
 </x-filament-panels::page>

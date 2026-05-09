@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\InventoryLog;
 use App\Models\Payment;
+use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
@@ -19,84 +20,152 @@ class PosController extends Controller
             'cart' => 'required|array|min:1',
             'cart.*.id' => 'required|integer|exists:products,id',
             'cart.*.qty' => 'required|integer|min:1',
-            'payment_method' => 'nullable|string',
+            'cart.*.notes' => 'nullable|string|max:255',
+            'payment_method' => 'required|string|in:cash,debit,qris',
+            'tax_rate' => 'required|numeric|min:0|max:100',
+            'service_charge' => 'required|numeric|min:0|max:100',
+            'discount_amount' => 'required|numeric|min:0',
+            'tax_amount' => 'required|numeric|min:0',
+            'service_amount' => 'required|numeric|min:0',
+            'total_amount' => 'required|numeric|min:0',
+            'paid_amount' => 'required|numeric|min:0',
+            'change_amount' => 'required|numeric|min:0',
         ]);
 
         $user = Auth::user();
-        if (! $user) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
+        if (! $user || $user->role !== 'cashier') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        if (! $user->cafe_id) {
+            return response()->json(['message' => 'Akun kasir belum terhubung ke cafe.'], 400);
         }
 
         $cart = $request->input('cart');
-        $paymentMethod = $request->input('payment_method', 'cash');
+        $paymentMethod = $request->input('payment_method');
+        $taxAmount = (int) $request->input('tax_amount');
+        $serviceAmount = (int) $request->input('service_amount');
+        $discountAmount = (int) $request->input('discount_amount');
+        $totalAmount = (int) $request->input('total_amount');
+        $paidAmount = (int) $request->input('paid_amount');
+        $changeAmount = (int) $request->input('change_amount');
 
-        return DB::transaction(function () use ($user, $cart) {
-            $total = 0;
-            foreach ($cart as $item) {
-                $product = Product::findOrFail($item['id']);
-                $total += ($product->price * $item['qty']);
-            }
+        if ($paidAmount < $totalAmount) {
+            return response()->json(['message' => 'Jumlah pembayaran kurang dari total.'], 400);
+        }
 
-            $transaction = Transaction::create([
-                'cafe_id' => $user->cafe_id,
-                'cashier_id' => $user->id,
-                'transaction_number' => 'TRX'.time().rand(100, 999),
-                'total_amount' => $total,
-                'discount_amount' => 0,
-                'tax_amount' => 0,
-                'paid_amount' => $total,
-                'change_amount' => 0,
-                'status' => 'completed',
-                'notes' => 'POS checkout',
-            ]);
+        try {
+            return DB::transaction(function () use ($user, $cart, $paymentMethod, $taxAmount, $serviceAmount, $discountAmount, $totalAmount, $paidAmount, $changeAmount) {
+                $subtotal = 0;
+                $cartDetails = [];
 
-            foreach ($cart as $item) {
-                $product = Product::findOrFail($item['id']);
-                $qty = (int) $item['qty'];
-                $subtotal = $product->price * $qty;
+                foreach ($cart as $item) {
+                    $product = Product::where('id', $item['id'])
+                        ->where('cafe_id', $user->cafe_id)
+                        ->first();
 
-                TransactionItem::create([
-                    'transaction_id' => $transaction->id,
-                    'product_id' => $product->id,
-                    'quantity' => $qty,
-                    'unit_price' => $product->price,
-                    'subtotal' => $subtotal,
-                    'notes' => null,
-                ]);
+                    if (! $product) {
+                        throw new \Exception("Produk #{$item['id']} tidak ditemukan untuk cafe ini.");
+                    }
 
-                // Update stock and inventory log
-                $before = $product->stock;
-                $product->decrement('stock', $qty);
-                $after = $product->stock;
+                    $qty = (int) $item['qty'];
+                    if ($qty > $product->stock) {
+                        throw new \Exception("Stok tidak cukup untuk produk: {$product->name}.");
+                    }
 
-                InventoryLog::create([
+                    $itemSubtotal = $product->price * $qty;
+                    $subtotal += $itemSubtotal;
+
+                    $cartDetails[] = [
+                        'product' => $product,
+                        'qty' => $qty,
+                        'price' => $product->price,
+                        'subtotal' => $itemSubtotal,
+                        'notes' => $item['notes'] ?? null,
+                    ];
+                }
+
+                $calculatedTotal = $subtotal + $taxAmount + $serviceAmount - $discountAmount;
+                if (abs($calculatedTotal - $totalAmount) > 1) {
+                    throw new \Exception('Total tidak sesuai, coba refresh halaman.');
+                }
+
+                $transaction = Transaction::create([
                     'cafe_id' => $user->cafe_id,
-                    'product_id' => $product->id,
-                    'action' => 'sale',
-                    'quantity_change' => -$qty,
-                    'quantity_before' => $before,
-                    'quantity_after' => $after,
-                    'reference_id' => $transaction->id,
-                    'reference_type' => 'transaction',
-                    'notes' => 'POS sale',
-                    'created_by' => $user->id,
+                    'cashier_id' => $user->id,
+                    'transaction_number' => 'TRX'.time().rand(1000, 9999),
+                    'total_amount' => $totalAmount,
+                    'discount_amount' => $discountAmount,
+                    'tax_amount' => $taxAmount,
+                    'paid_amount' => $paidAmount,
+                    'change_amount' => $changeAmount,
+                    'status' => 'completed',
+                    'notes' => "POS checkout - {$paymentMethod} payment",
                 ]);
-            }
 
-            // Fake payment record
-            Payment::create([
-                'transaction_id' => $transaction->id,
-                'payment_method_id' => null,
-                'amount' => $total,
-                'reference_number' => 'FAKE-'.$transaction->transaction_number,
-                'status' => 'success',
-            ]);
+                foreach ($cartDetails as $detail) {
+                    $product = $detail['product'];
+                    $qty = $detail['qty'];
 
-            return response()->json([
-                'success' => true,
-                'transaction_id' => $transaction->id,
-                'transaction_number' => $transaction->transaction_number,
-            ]);
-        });
+                    TransactionItem::create([
+                        'transaction_id' => $transaction->id,
+                        'product_id' => $product->id,
+                        'quantity' => $qty,
+                        'unit_price' => $detail['price'],
+                        'subtotal' => $detail['subtotal'],
+                        'notes' => $detail['notes'],
+                    ]);
+
+                    $before = $product->stock;
+                    $product->decrement('stock', $qty);
+                    $after = $product->stock;
+
+                    InventoryLog::create([
+                        'cafe_id' => $user->cafe_id,
+                        'product_id' => $product->id,
+                        'action' => 'sale',
+                        'quantity_change' => -$qty,
+                        'quantity_before' => $before,
+                        'quantity_after' => $after,
+                        'reference_id' => $transaction->id,
+                        'reference_type' => 'transaction',
+                        'notes' => "POS sale - {$paymentMethod}",
+                        'created_by' => $user->id,
+                    ]);
+                }
+
+                $paymentStatus = match ($paymentMethod) {
+                    'cash' => 'success',
+                    'debit' => 'pending',
+                    'qris' => 'pending',
+                    default => 'pending'
+                };
+
+                // Resolve or auto-create the payment method record for this cafe
+                $paymentMethodRecord = PaymentMethod::firstOrCreate(
+                    ['cafe_id' => $user->cafe_id, 'type' => $paymentMethod],
+                    ['name' => strtoupper($paymentMethod), 'is_active' => true]
+                );
+
+                Payment::create([
+                    'transaction_id' => $transaction->id,
+                    'payment_method_id' => $paymentMethodRecord->id,
+                    'amount' => $paidAmount,
+                    'reference_number' => "{$paymentMethod}-{$transaction->transaction_number}",
+                    'status' => $paymentStatus,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'transaction_id' => $transaction->id,
+                    'transaction_number' => $transaction->transaction_number,
+                    'total_amount' => $totalAmount,
+                    'change_amount' => $changeAmount,
+                    'payment_method' => $paymentMethod,
+                ]);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
 }

@@ -10,12 +10,17 @@ class Cafe extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name','address','phone','email','city','province','description','owner_name','logo_url','is_active','created_by'
+        'name', 'address', 'phone', 'email', 'city', 'province', 'description', 'owner_name', 'logo_url', 'is_active', 'created_by', 'subscription_id',
     ];
 
     public function manager()
     {
         return $this->hasOne(CafeManager::class);
+    }
+
+    public function subscription()
+    {
+        return $this->belongsTo(Subscription::class);
     }
 
     public function categories()
