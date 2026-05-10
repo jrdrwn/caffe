@@ -46,7 +46,7 @@ enum SubscriptionPlan: string implements HasColor, HasLabel
         return match ($this) {
             self::Free => [
                 'max_products' => 10,
-                'max_categories' => 3,
+                'max_categories' => 1,
                 'max_staff' => 1,
                 'max_payment_methods' => 2,
                 'can_export_reports' => false,

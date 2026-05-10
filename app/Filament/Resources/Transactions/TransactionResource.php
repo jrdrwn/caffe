@@ -26,13 +26,29 @@ class TransactionResource extends Resource
 
     protected static ?string $model = Transaction::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
+
+    protected static ?string $navigationLabel = 'Transaksi';
+
+    protected static ?string $pluralModelLabel = 'Transaksi';
+
+    protected static ?string $modelLabel = 'Transaksi';
 
     protected static ?string $roleNavigationGroup = 'Laporan';
 
     protected static array $allowedRoles = ['manager', 'cashier'];
 
     protected static ?string $recordTitleAttribute = 'transaction_number';
+
+    public static function getNavigationGroup(): ?string
+    {
+
+        if (Auth::user()?->role === 'manager') {
+            return static::$roleNavigationGroup;
+        }
+
+        return null;
+    }
 
     public static function form(Schema $schema): Schema
     {

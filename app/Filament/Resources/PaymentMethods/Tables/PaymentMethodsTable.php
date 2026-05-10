@@ -13,37 +13,35 @@ class PaymentMethodsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->contentGrid([
+                'md' => 3,
+            ])
             ->columns([
-                TextColumn::make('cafe.name')
-                    ->label('Cafe')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('name')
-                    ->label('Metode')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('type')
-                    ->label('Jenis')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'cash' => 'Tunai',
-                        'debit' => 'Debit / Kartu',
-                        default => 'QRIS',
-                    }),
-                TextColumn::make('is_active')
-                    ->label('Status')
-                    ->badge()
-                    ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Nonaktif')
-                    ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
+                \Filament\Tables\Columns\Layout\Stack::make([
+                    TextColumn::make('name')
+                        ->label('Metode')
+                        ->searchable()
+                        ->sortable()
+                        ->weight('bold')
+                        ->size('lg'),
+                    TextColumn::make('type')
+                        ->label('Jenis')
+                        ->badge()
+                        ->formatStateUsing(fn (string $state): string => match ($state) {
+                            'cash' => 'Tunai',
+                            'debit' => 'Debit / Kartu',
+                            default => 'QRIS',
+                        }),
+                    TextColumn::make('is_active')
+                        ->label('Status')
+                        ->badge()
+                        ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Nonaktif')
+                        ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
+                ])
             ])
             ->filters([])
             ->recordActions([
                 EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
             ]);
     }
 }

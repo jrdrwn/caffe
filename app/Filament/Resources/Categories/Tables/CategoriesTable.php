@@ -17,7 +17,8 @@ class CategoriesTable
                 TextColumn::make('cafe.name')
                     ->label('Cafe')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->hidden(fn() => auth()->user()?->role === 'manager'),
                 TextColumn::make('name')
                     ->label('Kategori')
                     ->searchable()

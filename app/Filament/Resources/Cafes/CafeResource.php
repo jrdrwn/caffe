@@ -30,9 +30,29 @@ class CafeResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingStorefront;
 
-    protected static ?string $navigationLabel = 'Cafes & Managers';
+    public static function getNavigationLabel(): string
+    {
+        if (auth()->user()?->role === 'super_admin') {
+            return 'Kafe';
+        }
+
+        return 'Kafe & Manajer';
+    }
+
+    protected static ?string $pluralModelLabel = 'Kafe';
+
+    protected static ?string $modelLabel = 'Kafe';
 
     protected static ?string $roleNavigationGroup = 'Platform';
+
+    public static function getNavigationGroup(): ?string
+    {
+        if (Auth::user()?->role === 'super_admin') {
+            return null;
+        }
+
+        return 'Kafe & Manajer';
+    }
 
     /**
      * super_admin : read-only (list + view)
@@ -61,7 +81,7 @@ class CafeResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery()->with(['manager.manager', 'subscription']);
+        $query = parent::getEloquentQuery()->with(['manager', 'subscription']);
 
         // Manager can only see their own cafe
         if (Auth::user()?->role === 'manager') {
@@ -105,7 +125,7 @@ class CafeResource extends Resource
         $items = [
             NavigationItem::make('Detail')
                 ->icon(Heroicon::OutlinedEye)
-                ->isActiveWhen(fn (): bool => $page::getRouteName() === ViewCafe::getRouteName())
+                ->isActiveWhen(fn(): bool => $page::getRouteName() === ViewCafe::getRouteName())
                 ->url(static::getUrl('view', ['record' => $record])),
         ];
 
@@ -113,7 +133,7 @@ class CafeResource extends Resource
         if (static::canEdit($record)) {
             $items[] = NavigationItem::make('Edit')
                 ->icon(Heroicon::OutlinedPencilSquare)
-                ->isActiveWhen(fn (): bool => $page::getRouteName() === EditCafe::getRouteName())
+                ->isActiveWhen(fn(): bool => $page::getRouteName() === EditCafe::getRouteName())
                 ->url(static::getUrl('edit', ['record' => $record]));
         }
 

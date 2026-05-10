@@ -14,9 +14,9 @@ class SuperAdminCafeSummaryTable extends TableWidget
 {
     protected static ?string $heading = 'Cafe, Manager & Subscription';
 
-    protected int|string|array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 2;
 
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 2;
 
     public static function canView(): bool
     {
@@ -26,8 +26,11 @@ class SuperAdminCafeSummaryTable extends TableWidget
     public function table(Table $table): Table
     {
         return $table
+            // ->query(
+            //     fn (): Builder => Cafe::query()->with(['manager.manager', 'subscription'])
+            // )
             ->query(
-                fn (): Builder => Cafe::query()->with(['manager.manager', 'subscription'])
+                fn(): Builder => Cafe::query()
             )
             ->columns([
                 TextColumn::make('name')
@@ -39,15 +42,15 @@ class SuperAdminCafeSummaryTable extends TableWidget
                     ->label('Kota')
                     ->sortable()
                     ->placeholder('-'),
-                TextColumn::make('manager.manager.name')
-                    ->label('Manager')
-                    ->placeholder('Belum ditetapkan')
-                    ->sortable(),
-                TextColumn::make('subscription.name')
-                    ->label('Subscription')
-                    ->badge()
-                    ->placeholder('Tidak ada')
-                    ->color('success'),
+                // TextColumn::make('manager.name')
+                //     ->label('Manager')
+                //     ->placeholder('Belum ditetapkan')
+                //     ->sortable(),
+                // TextColumn::make('subscription.name')
+                //     ->label('Subscription')
+                //     ->badge()
+                //     ->placeholder('Tidak ada')
+                //     ->color('success'),
                 IconColumn::make('is_active')
                     ->label('Status')
                     ->boolean()
@@ -57,6 +60,6 @@ class SuperAdminCafeSummaryTable extends TableWidget
                     ->falseColor('gray'),
             ])
             ->striped()
-            ->paginated(false);
+            ->paginated(true);
     }
 }

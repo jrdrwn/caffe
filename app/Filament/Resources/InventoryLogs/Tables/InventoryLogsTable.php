@@ -14,7 +14,11 @@ class InventoryLogsTable
     {
         return $table
             ->columns([
-                TextColumn::make('cafe.name')->label('Cafe')->searchable()->sortable(),
+                TextColumn::make('cafe.name')
+                    ->label('Cafe')
+                    ->searchable()
+                    ->sortable()
+                    ->hidden(fn() => auth()->user()?->role === 'manager'),
                 TextColumn::make('product.name')->label('Product')->searchable()->sortable(),
                 TextColumn::make('action')->badge(),
                 TextColumn::make('quantity_change')->sortable(),
@@ -30,6 +34,48 @@ class InventoryLogsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
+            ])
+            ->headerActions([
+                \Filament\Actions\Action::make('export_csv')
+                    ->label('Ekspor CSV')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->visible(function () {
+                        $user = auth()->user();
+                        if ($user?->role === 'super_admin') {
+                            return true;
+                        }
+                        
+                        $cafe = $user?->cafe;
+                        if (!$cafe) {
+                            return false;
+                        }
+                        
+                        return app(\App\Services\SubscriptionService::class)->canExportReports($cafe);
+                    })
+                    ->action(function ($livewire) {
+                        $records = $livewire->getFilteredTableQuery()->get();
+                        
+                        $filename = 'inventory-logs-' . now()->format('Y-m-d-H-i-s') . '.csv';
+
+                        return response()->streamDownload(function () use ($records) {
+                            $file = fopen('php://output', 'w');
+                            fputcsv($file, ['Cafe', 'Product', 'Action', 'Change', 'After', 'Created By', 'Date']);
+
+                            foreach ($records as $row) {
+                                fputcsv($file, [
+                                    $row->cafe?->name,
+                                    $row->product?->name,
+                                    $row->action,
+                                    $row->quantity_change,
+                                    $row->quantity_after,
+                                    $row->creator?->name,
+                                    $row->created_at->format('Y-m-d H:i:s'),
+                                ]);
+                            }
+
+                            fclose($file);
+                        }, $filename);
+                    })
             ]);
     }
 }

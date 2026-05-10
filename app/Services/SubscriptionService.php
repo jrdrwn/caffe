@@ -86,7 +86,7 @@ class SubscriptionService
             return true;
         }
 
-        return $cafe->users()->whereIn('role', ['manager', 'cashier'])->count() < $max;
+        return $cafe->users()->where('role', 'cashier')->count() < $max;
     }
 
     /**
@@ -100,7 +100,7 @@ class SubscriptionService
             return null;
         }
 
-        return max(0, $max - $cafe->users()->whereIn('role', ['manager', 'cashier'])->count());
+        return max(0, $max - $cafe->users()->where('role', 'cashier')->count());
     }
 
     /**
@@ -179,5 +179,47 @@ class SubscriptionService
         $cafe->update([
             'subscription_id' => $subscription->id,
         ]);
+    }
+
+    /**
+     * Enforce subscription limits by deactivating excess items.
+     */
+    public function enforceLimits(Cafe $cafe): void
+    {
+        $subscription = $this->subscriptionFor($cafe);
+        if (!$subscription) return;
+
+        // 1. Payment Methods
+        $maxPaymentMethods = $subscription->getLimit('max_payment_methods');
+        if ($maxPaymentMethods !== null) {
+            $paymentMethods = $cafe->paymentMethods()->orderBy('id', 'asc')->get();
+            if ($paymentMethods->count() > $maxPaymentMethods) {
+                foreach ($paymentMethods->skip($maxPaymentMethods) as $pm) {
+                    $pm->update(['is_active' => false]);
+                }
+            }
+        }
+
+        // 2. Categories
+        $maxCategories = $subscription->getLimit('max_categories');
+        if ($maxCategories !== null) {
+            $categories = $cafe->categories()->orderBy('id', 'asc')->get();
+            if ($categories->count() > $maxCategories) {
+                foreach ($categories->skip($maxCategories) as $cat) {
+                    $cat->update(['is_active' => false]);
+                }
+            }
+        }
+
+        // 3. Products
+        $maxProducts = $subscription->getLimit('max_products');
+        if ($maxProducts !== null) {
+            $products = $cafe->products()->orderBy('id', 'asc')->get();
+            if ($products->count() > $maxProducts) {
+                foreach ($products->skip($maxProducts) as $prod) {
+                    $prod->update(['is_active' => false]);
+                }
+            }
+        }
     }
 }

@@ -24,7 +24,13 @@ class PaymentMethodResource extends Resource
 
     protected static ?string $model = PaymentMethod::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
+
+    protected static ?string $navigationLabel = 'Metode Pembayaran';
+
+    protected static ?string $pluralModelLabel = 'Metode Pembayaran';
+
+    protected static ?string $modelLabel = 'Metode Pembayaran';
 
     protected static ?string $roleNavigationGroup = 'Master Data';
 
@@ -44,13 +50,7 @@ class PaymentMethodResource extends Resource
 
     public static function canCreate(): bool
     {
-        $cafe = static::cafeForCurrentUser();
-
-        if (! $cafe) {
-            return false;
-        }
-
-        return static::subscriptionService()->canAddPaymentMethod($cafe);
+        return false;
     }
 
     public static function getEloquentQuery(): Builder

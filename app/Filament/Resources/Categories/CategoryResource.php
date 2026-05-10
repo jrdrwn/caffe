@@ -24,7 +24,13 @@ class CategoryResource extends Resource
 
     protected static ?string $model = Category::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-list-bullet';
+
+    protected static ?string $navigationLabel = 'Kategori';
+
+    protected static ?string $pluralModelLabel = 'Kategori';
+
+    protected static ?string $modelLabel = 'Kategori';
 
     protected static ?string $roleNavigationGroup = 'Master Data';
 
@@ -42,16 +48,7 @@ class CategoryResource extends Resource
         return CategoriesTable::configure($table);
     }
 
-    public static function canCreate(): bool
-    {
-        $cafe = static::cafeForCurrentUser();
 
-        if (! $cafe) {
-            return false;
-        }
-
-        return static::subscriptionService()->canCreateCategory($cafe);
-    }
 
     public static function getEloquentQuery(): Builder
     {

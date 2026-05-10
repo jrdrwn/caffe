@@ -22,9 +22,19 @@ class Cafe extends Model
         'is_active' => 'boolean',
     ];
 
+    protected static function booted()
+    {
+        static::created(function ($cafe) {
+            $cafe->paymentMethods()->createMany([
+                ['name' => 'Tunai', 'type' => 'cash', 'is_active' => true],
+                ['name' => 'QRIS', 'type' => 'qris', 'is_active' => true],
+            ]);
+        });
+    }
+
     public function manager()
     {
-        return $this->hasOne(CafeManager::class);
+        return $this->hasOne(User::class)->where('role', 'manager');
     }
 
     /**

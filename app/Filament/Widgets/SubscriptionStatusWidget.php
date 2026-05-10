@@ -60,7 +60,7 @@ class SubscriptionStatusWidget extends Widget
 
         $stats[] = $this->usageStat('Produk', $cafe->products()->count(), $subscription?->getLimit('max_products'), 'heroicon-m-cube');
         $stats[] = $this->usageStat('Kategori', $cafe->categories()->count(), $subscription?->getLimit('max_categories'), 'heroicon-m-tag');
-        $stats[] = $this->usageStat('Staff', $cafe->users()->whereIn('role', ['manager', 'cashier'])->count(), $subscription?->getLimit('max_staff'), 'heroicon-m-users');
+        $stats[] = $this->usageStat('Staff', $cafe->users()->where('role', 'cashier')->count(), $subscription?->getLimit('max_staff'), 'heroicon-m-users');
         $stats[] = $this->usageStat('Metode Pembayaran', $cafe->paymentMethods()->count(), $subscription?->getLimit('max_payment_methods'), 'heroicon-m-banknotes');
 
         $stats[] = $this->featureStat('Inventori', $service->canUseInventory($cafe), 'heroicon-m-archive-box', 'Pro');

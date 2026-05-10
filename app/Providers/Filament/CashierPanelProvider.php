@@ -40,6 +40,7 @@ class CashierPanelProvider extends PanelProvider
                 CashierPanelDashboard::class,
                 Pos::class,
             ])
+            ->topNavigation()
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -56,7 +57,7 @@ class CashierPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn (): string => Blade::render('<x-cashier-role-links />')
+                fn(): string => Blade::render('<x-cashier-role-links />')
             );
     }
 }

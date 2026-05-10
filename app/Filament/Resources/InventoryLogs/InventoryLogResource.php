@@ -24,7 +24,13 @@ class InventoryLogResource extends Resource
 
     protected static ?string $model = InventoryLog::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
+
+    protected static ?string $navigationLabel = 'Log Inventaris';
+
+    protected static ?string $pluralModelLabel = 'Log Inventaris';
+
+    protected static ?string $modelLabel = 'Log Inventaris';
 
     protected static ?string $roleNavigationGroup = 'Laporan';
 
@@ -38,13 +44,9 @@ class InventoryLogResource extends Resource
      */
     public static function canAccess(): bool
     {
-        if (static::isSuperAdmin()) {
-            return true;
-        }
-
         $cafe = static::cafeForCurrentUser();
 
-        if (! $cafe) {
+        if (!$cafe) {
             return false;
         }
 

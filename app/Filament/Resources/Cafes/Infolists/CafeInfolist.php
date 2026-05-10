@@ -59,12 +59,8 @@ class CafeInfolist
                     ->columns(2)
                     ->visible($isSuperAdmin)
                     ->schema([
-                        TextEntry::make('manager.manager.name')
+                        TextEntry::make('manager.name')
                             ->label('Manager')
-                            ->placeholder('Belum ditetapkan'),
-                        TextEntry::make('manager.assigned_at')
-                            ->label('Assigned At')
-                            ->dateTime('d M Y, H:i')
                             ->placeholder('Belum ditetapkan'),
                     ]),
 

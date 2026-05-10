@@ -21,10 +21,11 @@ class CafesTable
                     ->searchable()
                     ->sortable()
                     ->weight('semibold'),
-                TextColumn::make('manager.manager.name')
+                TextColumn::make('manager.name')
                     ->label('Manager')
                     ->placeholder('Belum ditetapkan')
-                    ->searchable(),
+                    ->searchable()
+                    ->hidden(fn() => auth()->user()?->role === 'super_admin'),
                 BadgeColumn::make('subscription.name')
                     ->label('Langganan')
                     ->colors([

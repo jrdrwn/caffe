@@ -34,6 +34,62 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
+    protected static function booted()
+    {
+        static::creating(function ($user) {
+            if ($user->role === 'cashier' && $user->is_active) {
+                $cafe = $user->cafe;
+                if ($cafe) {
+                    $subscription = app(\App\Services\SubscriptionService::class)->subscriptionFor($cafe);
+                    if ($subscription) {
+                        $max = $subscription->getLimit('max_staff');
+                        if ($max !== null) {
+                            $activeCount = $cafe->users()->where('role', 'cashier')->where('is_active', true)->count();
+                            if ($activeCount >= $max) {
+                                $oldest = $cafe->users()
+                                    ->where('role', 'cashier')
+                                    ->where('is_active', true)
+                                    ->orderBy('id', 'asc')
+                                    ->first();
+                                    
+                                if ($oldest) {
+                                    $oldest->update(['is_active' => false]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        static::updating(function ($user) {
+            if ($user->role === 'cashier' && $user->isDirty('is_active') && $user->is_active) {
+                $cafe = $user->cafe;
+                if ($cafe) {
+                    $subscription = app(\App\Services\SubscriptionService::class)->subscriptionFor($cafe);
+                    if ($subscription) {
+                        $max = $subscription->getLimit('max_staff');
+                        if ($max !== null) {
+                            $activeCount = $cafe->users()->where('role', 'cashier')->where('is_active', true)->where('id', '!=', $user->id)->count();
+                            if ($activeCount >= $max) {
+                                $oldest = $cafe->users()
+                                    ->where('role', 'cashier')
+                                    ->where('is_active', true)
+                                    ->where('id', '!=', $user->id)
+                                    ->orderBy('id', 'asc')
+                                    ->first();
+                                    
+                                if ($oldest) {
+                                    $oldest->update(['is_active' => false]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     public function cafe()
     {
         return $this->belongsTo(Cafe::class);

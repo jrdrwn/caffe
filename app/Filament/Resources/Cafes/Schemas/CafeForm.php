@@ -78,8 +78,8 @@ class CafeForm
 
                 // Subscription assignment — super admin only
                 Section::make('Langganan')
-                    ->description('Pilih paket langganan yang sesuai dengan kebutuhan cafe.')
-                    // ->visible($isSuperAdmin)
+                    ->description('Pemilihan paket langganan ada di halaman utama / Dashboard Manager. ')
+                    ->disabled(true)
                     ->schema([
                         Select::make('subscription_id')
                             ->label('Paket Langganan')

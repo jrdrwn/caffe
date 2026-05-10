@@ -58,6 +58,46 @@ class TransactionsTable
                 Filter::make('bulan_ini')
                     ->label('Bulan Ini')
                     ->query(fn(Builder $query): Builder => $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)),
+            ])
+            ->headerActions([
+                \Filament\Actions\Action::make('export_csv')
+                    ->label('Ekspor CSV')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->visible(function () {
+                        $user = auth()->user();
+                        if ($user?->role === 'super_admin') {
+                            return true;
+                        }
+                        
+                        $cafe = $user?->cafe;
+                        if (!$cafe) {
+                            return false;
+                        }
+                        
+                        return app(\App\Services\SubscriptionService::class)->canExportReports($cafe);
+                    })
+                    ->action(function ($livewire) {
+                        $records = $livewire->getFilteredTableQuery()->get();
+                        
+                        $filename = 'transaksi-' . now()->format('Y-m-d-H-i-s') . '.csv';
+
+                        return response()->streamDownload(function () use ($records) {
+                            $file = fopen('php://output', 'w');
+                            fputcsv($file, ['Nomor Transaksi', 'Kasir', 'Total', 'Status', 'Tanggal']);
+
+                            foreach ($records as $row) {
+                                fputcsv($file, [
+                                    $row->transaction_number,
+                                    $row->cashier?->name,
+                                    $row->total_amount,
+                                    $row->status,
+                                    $row->created_at->format('Y-m-d H:i:s'),
+                                ]);
+                            }
+
+                            fclose($file);
+                        }, $filename);
+                    })
             ]);
     }
 }

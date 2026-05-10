@@ -38,6 +38,7 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Dashboard::class,
             ])
+            ->topNavigation()
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->middleware([
                 EncryptCookies::class,
@@ -55,7 +56,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn (): string => Blade::render('<x-admin-role-links />')
+                fn(): string => Blade::render('<x-admin-role-links />')
             );
     }
 }

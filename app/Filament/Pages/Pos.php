@@ -12,7 +12,11 @@ use Illuminate\Support\Facades\Auth;
 
 class Pos extends Page
 {
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-currency-dollar';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shopping-cart';
+
+    protected static ?string $navigationLabel = 'Kasir';
+
+    protected static ?string $title = 'Kasir';
 
     protected string $view = 'filament.pages.pos';
 
@@ -65,12 +69,12 @@ class Pos extends Page
                 $products = $products->map(function ($product) use ($canUseVariants, $canUseDiscounts) {
                     $arr = $product->toArray();
                     // If variants are not allowed, treat all products as non-variant
-                    if (! $canUseVariants) {
+                    if (!$canUseVariants) {
                         $arr['has_variants'] = false;
                         $arr['variants'] = null;
                     }
                     // If discounts are not allowed, zero out discount
-                    if (! $canUseDiscounts) {
+                    if (!$canUseDiscounts) {
                         $arr['discount_percentage'] = 0;
                     }
 
@@ -90,10 +94,10 @@ class Pos extends Page
         return Auth::user()?->role === 'cashier';
     }
 
-    public static function getNavigationGroup(): ?string
-    {
-        return 'Operasional';
-    }
+    // public static function getNavigationGroup(): ?string
+    // {
+    //     return 'Operasional';
+    // }
 
     public static function shouldRegisterNavigation(): bool
     {

@@ -17,6 +17,60 @@ class Product extends Model
         'variants' => 'array',
     ];
 
+    protected static function booted()
+    {
+        static::creating(function ($product) {
+            if ($product->is_active) {
+                $cafe = \App\Models\Cafe::find($product->cafe_id);
+                if ($cafe) {
+                    $subscription = app(\App\Services\SubscriptionService::class)->subscriptionFor($cafe);
+                    if ($subscription) {
+                        $max = $subscription->getLimit('max_products');
+                        if ($max !== null) {
+                            $activeCount = $cafe->products()->where('is_active', true)->count();
+                            if ($activeCount >= $max) {
+                                $oldest = $cafe->products()
+                                    ->where('is_active', true)
+                                    ->orderBy('id', 'asc')
+                                    ->first();
+                                    
+                                if ($oldest) {
+                                    $oldest->update(['is_active' => false]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        static::updating(function ($product) {
+            if ($product->isDirty('is_active') && $product->is_active) {
+                $cafe = \App\Models\Cafe::find($product->cafe_id);
+                if ($cafe) {
+                    $subscription = app(\App\Services\SubscriptionService::class)->subscriptionFor($cafe);
+                    if ($subscription) {
+                        $max = $subscription->getLimit('max_products');
+                        if ($max !== null) {
+                            $activeCount = $cafe->products()->where('is_active', true)->where('id', '!=', $product->id)->count();
+                            if ($activeCount >= $max) {
+                                $oldest = $cafe->products()
+                                    ->where('is_active', true)
+                                    ->where('id', '!=', $product->id)
+                                    ->orderBy('id', 'asc')
+                                    ->first();
+                                    
+                                if ($oldest) {
+                                    $oldest->update(['is_active' => false]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     public function cafe()
     {
         return $this->belongsTo(Cafe::class);

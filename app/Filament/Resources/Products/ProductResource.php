@@ -24,7 +24,13 @@ class ProductResource extends Resource
 
     protected static ?string $model = Product::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-tag';
+
+    protected static ?string $navigationLabel = 'Produk';
+
+    protected static ?string $pluralModelLabel = 'Produk';
+
+    protected static ?string $modelLabel = 'Produk';
 
     protected static ?string $roleNavigationGroup = 'Master Data';
 
@@ -42,16 +48,7 @@ class ProductResource extends Resource
         return ProductsTable::configure($table);
     }
 
-    public static function canCreate(): bool
-    {
-        $cafe = static::cafeForCurrentUser();
 
-        if (! $cafe) {
-            return false;
-        }
-
-        return static::subscriptionService()->canCreateProduct($cafe);
-    }
 
     public static function getEloquentQuery(): Builder
     {

@@ -36,6 +36,7 @@ class ManagerPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Blue,
             ])
+            ->sidebarCollapsibleOnDesktop()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->pages([
@@ -54,10 +55,11 @@ class ManagerPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                \App\Http\Middleware\CheckSubscriptionExpiry::class,
             ])
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn (): string => Blade::render('<x-manager-role-links />')
+                fn(): string => Blade::render('<x-manager-role-links />')
             );
     }
 }

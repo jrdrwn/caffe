@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\Auth;
 
 class SuperAdminStatsWidget extends StatsOverviewWidget
 {
-    protected static ?int $sort = 1;
+    protected static ?int $sort = 2;
 
-    protected int|string|array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 3;
 
     public static function canView(): bool
     {
@@ -26,32 +26,26 @@ class SuperAdminStatsWidget extends StatsOverviewWidget
         $activeCafes = Cafe::query()->where('is_active', true)->count();
         $inactiveCafes = $totalCafes - $activeCafes;
 
-        $subscribedCafes = Cafe::query()->whereNotNull('subscription_id')->count();
-        $unsubscribed = $totalCafes - $subscribedCafes;
-
-        $totalManagers = CafeManager::query()->count();
-        $unassigned = Cafe::query()
-            ->whereDoesntHave('manager')
-            ->where('is_active', true)
-            ->count();
-
         $activePlans = Subscription::query()->where('is_active', true)->count();
+
+        $totalTransactions = \App\Models\Transaction::count();
+        $totalStaff = \App\Models\User::whereIn('role', ['manager', 'cashier'])->count();
 
         return [
             Stat::make('Total Klien Cafe', $totalCafes)
-                ->description($activeCafes.' aktif · '.$inactiveCafes.' nonaktif')
+                ->description($activeCafes . ' aktif · ' . $inactiveCafes . ' nonaktif')
                 ->descriptionIcon('heroicon-m-building-storefront')
                 ->color('amber'),
 
-            Stat::make('Berlangganan', $subscribedCafes)
-                ->description($unsubscribed.' cafe belum berlangganan')
-                ->descriptionIcon('heroicon-m-credit-card')
-                ->color($unsubscribed > 0 ? 'warning' : 'success'),
+            Stat::make('Total Transaksi', $totalTransactions)
+                ->description('Semua transaksi tercatat')
+                ->descriptionIcon('heroicon-m-shopping-cart')
+                ->color('success'),
 
-            Stat::make('Manager Ditugaskan', $totalManagers)
-                ->description($unassigned.' cafe belum ada manager')
-                ->descriptionIcon('heroicon-m-user-group')
-                ->color($unassigned > 0 ? 'warning' : 'success'),
+            Stat::make('Total Staff', $totalStaff)
+                ->description('Manager & Kasir terdaftar')
+                ->descriptionIcon('heroicon-m-users')
+                ->color('info'),
 
             Stat::make('Plan Tersedia', $activePlans)
                 ->description('subscription plan aktif')
