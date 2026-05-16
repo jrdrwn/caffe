@@ -29,6 +29,7 @@ class CashierPanelProvider extends PanelProvider
         return $panel
             ->id('cashier')
             ->brandName('Cashier Cafe')
+            ->viteTheme('resources/css/filament/cashier/theme.css')
             ->path('cashier')
             ->brandLogo(asset('/default-logo/light-mode.png'))
             ->darkModeBrandLogo(asset('/default-logo/dark-mode.png'))

@@ -34,6 +34,12 @@ class Pos extends Page
     /** Service charge percentage from the cafe — read-only in POS */
     public int $serviceChargePercentage = 0;
 
+    public string $qrisType = 'manual';
+
+    public array $activePaymentMethods = [];
+
+    public ?string $midtransClientKey = null;
+
     public function mount(): void
     {
         $user = Auth::user();
@@ -56,6 +62,14 @@ class Pos extends Page
                 $this->serviceChargePercentage = (int) $cafe->service_charge_percentage;
                 $this->cafeName = $cafe->name;
                 $this->cafeLogo = $cafe->logo_url;
+                $this->qrisType = $cafe->qris_type ?? 'manual';
+                $this->midtransClientKey = $cafe->midtrans_client_key;
+
+                // Load active payment methods from the database
+                $this->activePaymentMethods = $cafe->paymentMethods()
+                    ->where('is_active', true)
+                    ->pluck('type')
+                    ->toArray();
             }
         }
 

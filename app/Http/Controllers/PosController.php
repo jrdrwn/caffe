@@ -107,6 +107,7 @@ class PosController extends Controller
                     'total_amount' => $totalAmount,
                     'discount_amount' => $discountAmount,
                     'tax_amount' => $taxAmount,
+                    'service_charge_amount' => $serviceAmount,
                     'paid_amount' => $paidAmount,
                     'change_amount' => $changeAmount,
                     'status' => $transactionStatus,
@@ -157,13 +158,44 @@ class PosController extends Controller
                     ['name' => strtoupper($paymentMethod), 'is_active' => true]
                 );
 
-                Payment::create([
+                $payment = Payment::create([
                     'transaction_id' => $transaction->id,
                     'payment_method_id' => $paymentMethodRecord->id,
                     'amount' => $paidAmount,
                     'reference_number' => "{$paymentMethod}-{$transaction->transaction_number}",
                     'status' => $paymentStatus,
                 ]);
+
+                $qrisData = null;
+                if ($paymentMethod === 'qris') {
+                    $cafeRecord = \App\Models\Cafe::find($user->cafe_id);
+                    $effectiveQrisType = $cafeRecord->qris_type ?? (filled($cafeRecord->midtrans_server_key) ? 'midtrans' : 'manual');
+
+                    if ($effectiveQrisType === 'midtrans') {
+                        try {
+                            $midtransResponse = app(\App\Services\MidtransService::class)->generateQris($transaction);
+
+                            // Find the QR code action in Midtrans response
+                            $qrAction = collect($midtransResponse['actions'] ?? [])->where('name', 'generate-qr-code')->first();
+
+                            $qrisData = [
+                                'type' => 'midtrans',
+                                'qr_url' => $qrAction['url'] ?? null,
+                                'transaction_id' => $midtransResponse['transaction_id'] ?? null,
+                                'expiry_time' => now()->addMinutes(15)->format('H:i'),
+                            ];
+
+                            if (empty($qrisData['qr_url'])) {
+                                throw new \Exception('Midtrans tidak memberikan URL QR Code. Cek konfigurasi pembayaran.');
+                            }
+
+                            $payment->update(['metadata' => $qrisData]);
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::error('Midtrans QRIS Error: '.$e->getMessage());
+                            throw new \Exception('Gagal terhubung ke Midtrans: '.$e->getMessage());
+                        }
+                    }
+                }
 
                 return response()->json([
                     'success' => true,
@@ -172,10 +204,111 @@ class PosController extends Controller
                     'total_amount' => $totalAmount,
                     'change_amount' => $changeAmount,
                     'payment_method' => $paymentMethod,
+                    'qris_data' => $qrisData,
                 ]);
             });
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
+    }
+
+    public function checkStatus(string $transactionNumber)
+    {
+        $transaction = \App\Models\Transaction::where('transaction_number', $transactionNumber)
+            ->where('cafe_id', Auth::user()->cafe_id)
+            ->first();
+
+        if (! $transaction) {
+            return response()->json(['status' => 'not_found'], 404);
+        }
+
+        // If already completed in our DB, just return success
+        if ($transaction->status === 'completed') {
+            return response()->json(['status' => 'success']);
+        }
+
+        // If pending, try to check Midtrans directly for latest status
+        try {
+            $midtrans = app(\App\Services\MidtransService::class)->forCafe($transaction->cafe);
+            $statusResponse = $midtrans->checkStatus($transactionNumber);
+
+            $transactionStatus = $statusResponse['transaction_status'] ?? '';
+
+            if (in_array($transactionStatus, ['capture', 'settlement'])) {
+                $transaction->update(['status' => 'completed']);
+                $transaction->payments()->update(['status' => 'success']);
+
+                // Record to cash flow if not already done
+                // Note: cafe project does not have CashFlow model yet, so we skip it or handle it if it exists
+                if (class_exists(\App\Models\CashFlow::class)) {
+                    \App\Models\CashFlow::firstOrCreate(
+                        ['reference_id' => $transaction->id, 'reference_type' => 'transaction'],
+                        [
+                            'cafe_id' => $transaction->cafe_id,
+                            'type' => 'income',
+                            'category' => 'sales',
+                            'amount' => $transaction->total_amount,
+                            'description' => "Penjualan POS #{$transaction->transaction_number} (Midtrans Check)",
+                            'created_by' => $transaction->cashier_id,
+                        ]
+                    );
+                }
+
+                return response()->json(['status' => 'success']);
+            }
+
+            if (in_array($transactionStatus, ['deny', 'cancel', 'expire', 'failure'])) {
+                $transaction->update(['status' => 'cancelled']);
+
+                return response()->json(['status' => 'failed']);
+            }
+
+        } catch (\Exception $e) {
+            // Ignore errors during check, just return current local status
+        }
+
+        return response()->json(['status' => $transaction->status]);
+    }
+
+    public function cancelOrder(string $transactionNumber)
+    {
+        $user = Auth::user();
+        $transaction = \App\Models\Transaction::where('transaction_number', $transactionNumber)
+            ->where('cafe_id', $user->cafe_id)
+            ->where('status', 'pending')
+            ->first();
+
+        if (! $transaction) {
+            return response()->json(['message' => 'Transaksi tidak ditemukan atau sudah diproses.'], 404);
+        }
+
+        DB::transaction(function () use ($transaction, $user) {
+            $transaction->update(['status' => 'cancelled']);
+            $transaction->payments()->update(['status' => 'failed']);
+
+            foreach ($transaction->items as $item) {
+                $product = $item->product;
+                if ($product) {
+                    $before = $product->stock;
+                    $product->increment('stock', $item->quantity);
+                    $after = $product->stock;
+
+                    \App\Models\InventoryLog::create([
+                        'cafe_id' => $user->cafe_id,
+                        'product_id' => $product->id,
+                        'action' => 'adjustment',
+                        'quantity_change' => $item->quantity,
+                        'quantity_before' => $before,
+                        'quantity_after' => $after,
+                        'reference_id' => $transaction->id,
+                        'reference_type' => 'transaction',
+                        'notes' => "POS Order Cancelled - Stock Returned (#{$transaction->transaction_number})",
+                        'created_by' => $user->id,
+                    ]);
+                }
+            }
+        });
+
+        return response()->json(['success' => true, 'message' => 'Pesanan berhasil dibatalkan dan stok telah kembali.']);
     }
 }

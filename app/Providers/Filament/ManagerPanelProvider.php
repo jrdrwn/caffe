@@ -39,6 +39,10 @@ class ManagerPanelProvider extends PanelProvider
             ->homeUrl('/manajer')
             ->colors([
                 'primary' => Color::Blue,
+                'success' => Color::Emerald,
+                'warning' => Color::Orange,
+                'danger' => Color::Rose,
+                'info' => Color::Sky,
             ])
             ->sidebarCollapsibleOnDesktop()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')

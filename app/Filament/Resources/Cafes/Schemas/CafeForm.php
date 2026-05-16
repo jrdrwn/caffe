@@ -92,6 +92,41 @@ class CafeForm
                             ->searchable()
                             ->nullable(),
                     ]),
+                Section::make('Payment Gateway (QRIS)')
+                    ->description('Konfigurasi bagaimana QRIS diproses.')
+                    ->schema([
+                        Select::make('qris_type')
+                            ->label('Tipe QRIS')
+                            ->options([
+                                'manual' => 'Manual (Scan Statis / Foto)',
+                                'midtrans' => 'Otomatis (Midtrans Dynamic QRIS)',
+                            ])
+                            ->required()
+                            ->live(),
+
+                        \Filament\Schemas\Components\Grid::make(2)
+                            ->schema([
+                                TextInput::make('midtrans_merchant_id')
+                                    ->label('Midtrans Merchant ID')
+                                    ->placeholder('Gxxxxxxxxx')
+                                    ->required(fn ($get) => $get('qris_type') === 'midtrans'),
+                                TextInput::make('midtrans_client_key')
+                                    ->label('Midtrans Client Key')
+                                    ->placeholder('SB-Mid-client-xxxxxxxx')
+                                    ->required(fn ($get) => $get('qris_type') === 'midtrans'),
+                                TextInput::make('midtrans_server_key')
+                                    ->label('Midtrans Server Key')
+                                    ->password()
+                                    ->revealable()
+                                    ->placeholder('SB-Mid-server-xxxxxxxx')
+                                    ->required(fn ($get) => $get('qris_type') === 'midtrans'),
+                                Toggle::make('midtrans_is_production')
+                                    ->label('Mode Produksi')
+                                    ->helperText('Aktifkan jika menggunakan akun Midtrans Production.'),
+                            ])
+                            ->visible(fn ($get) => $get('qris_type') === 'midtrans'),
+                    ]),
+
                 Section::make('Lokasi & Brand')
                     ->description('Tambahkan alamat dan aset visual agar tampilan lebih profesional.')
                     ->columns(2)

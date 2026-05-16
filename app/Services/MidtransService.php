@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 class MidtransService
 {
     private string $serverKey;
+    private string $clientKey;
 
     private bool $isProduction;
 
@@ -19,10 +20,176 @@ class MidtransService
     public function __construct()
     {
         $this->serverKey = (string) config('midtrans.server_key', '');
+        $this->clientKey = (string) config('midtrans.client_key', '');
         $this->isProduction = (bool) config('midtrans.is_production', false);
         $this->baseUrl = $this->isProduction
             ? 'https://api.midtrans.com'
             : 'https://api.sandbox.midtrans.com';
+    }
+
+    /**
+     * Configure the service for a specific cafe's Midtrans credentials.
+     */
+    public function forCafe(Cafe $cafe): self
+    {
+        $clone = clone $this;
+
+        if (filled($cafe->midtrans_server_key)) {
+            $clone->serverKey = $cafe->midtrans_server_key;
+            $clone->clientKey = $cafe->midtrans_client_key ?? '';
+            $clone->isProduction = (bool) $cafe->midtrans_is_production;
+            $clone->baseUrl = $clone->isProduction
+                ? 'https://api.midtrans.com'
+                : 'https://api.sandbox.midtrans.com';
+        }
+
+        return $clone;
+    }
+
+    /**
+     * Generate a QRIS code for a transaction.
+     */
+    public function generateQris(\App\Models\Transaction $transaction): array
+    {
+        $cafe = $transaction->cafe;
+        $orderId = $transaction->transaction_number;
+
+        $items = $transaction->items->map(function ($item) {
+            return [
+                'id' => (string) $item->product_id,
+                'price' => (int) $item->unit_price,
+                'quantity' => (int) $item->quantity,
+                'name' => substr($item->product->name ?? 'Item', 0, 50),
+            ];
+        })->toArray();
+
+        if ($transaction->tax_amount > 0) {
+            $items[] = [
+                'id' => 'TAX',
+                'price' => (int) $transaction->tax_amount,
+                'quantity' => 1,
+                'name' => 'Pajak (Tax)',
+            ];
+        }
+
+        if ($transaction->service_charge_amount > 0) {
+            $items[] = [
+                'id' => 'SERVICE',
+                'price' => (int) $transaction->service_charge_amount,
+                'quantity' => 1,
+                'name' => 'Biaya Layanan',
+            ];
+        }
+
+        if ($transaction->discount_amount > 0) {
+            $items[] = [
+                'id' => 'DISCOUNT',
+                'price' => -(int) $transaction->discount_amount,
+                'quantity' => 1,
+                'name' => 'Diskon',
+            ];
+        }
+
+        $payload = [
+            'payment_type' => 'qris',
+            'transaction_details' => [
+                'order_id' => $orderId,
+                'gross_amount' => (int) $transaction->total_amount,
+            ],
+            'expiry' => [
+                'unit' => 'minutes',
+                'duration' => 15,
+            ],
+        ];
+
+        $service = $this->forCafe($cafe);
+
+        $response = \Illuminate\Support\Facades\Http::timeout(10)
+            ->withBasicAuth($service->serverKey, '')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+            ])
+            ->post("{$service->baseUrl}/v2/charge", $payload);
+
+        if (! $response->successful()) {
+            throw new \RuntimeException('Gagal generate QRIS Midtrans: '.$response->body());
+        }
+
+        return $response->json();
+    }
+
+    /**
+     * Create a Snap token for a POS transaction.
+     */
+    public function createTransactionSnapToken(\App\Models\Transaction $transaction): string
+    {
+        $cafe = $transaction->cafe;
+        $orderId = $transaction->transaction_number;
+
+        $items = $transaction->items->map(function ($item) {
+            return [
+                'id' => (string) $item->product_id,
+                'price' => (int) $item->unit_price,
+                'quantity' => (int) $item->quantity,
+                'name' => substr($item->product->name ?? 'Item', 0, 50),
+            ];
+        })->toArray();
+
+        if ($transaction->tax_amount > 0) {
+            $items[] = [
+                'id' => 'TAX',
+                'price' => (int) $transaction->tax_amount,
+                'quantity' => 1,
+                'name' => 'Pajak (Tax)',
+            ];
+        }
+
+        if ($transaction->service_charge_amount > 0) {
+            $items[] = [
+                'id' => 'SERVICE',
+                'price' => (int) $transaction->service_charge_amount,
+                'quantity' => 1,
+                'name' => 'Biaya Layanan',
+            ];
+        }
+
+        if ($transaction->discount_amount > 0) {
+            $items[] = [
+                'id' => 'DISCOUNT',
+                'price' => -(int) $transaction->discount_amount,
+                'quantity' => 1,
+                'name' => 'Diskon',
+            ];
+        }
+
+        $payload = [
+            'transaction_details' => [
+                'order_id' => $orderId,
+                'gross_amount' => (int) $transaction->total_amount,
+            ],
+            'customer_details' => [
+                'first_name' => $cafe->name.' Customer',
+            ],
+            'item_details' => $items,
+            'enabled_payments' => ['qris', 'gopay', 'shopeepay', 'other_qris'],
+        ];
+
+        $service = $this->forCafe($cafe);
+
+        $response = Http::timeout(10)
+            ->withBasicAuth($service->serverKey, '')
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+            ])
+            ->post("{$service->baseUrl}/snap/v1/transactions", $payload);
+
+        if (! $response->successful()) {
+            throw new \RuntimeException('Gagal membuat Snap Token POS: '.$response->body());
+        }
+
+        return $response->json()['token'];
     }
 
     /**
