@@ -15,4 +15,9 @@ class AdminLogin extends Login
     {
         return 'Panel Admin - Kelola Semua Cafe';
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return filament()->getCurrentPanel()->getUrl();
+    }
 }

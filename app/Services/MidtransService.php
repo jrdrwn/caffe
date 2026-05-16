@@ -5,12 +5,14 @@ namespace App\Services;
 use App\Models\Cafe;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 class MidtransService
 {
     private string $serverKey;
+
     private string $clientKey;
 
     private bool $isProduction;
@@ -37,7 +39,7 @@ class MidtransService
         if (filled($cafe->midtrans_server_key)) {
             $clone->serverKey = $cafe->midtrans_server_key;
             $clone->clientKey = $cafe->midtrans_client_key ?? '';
-            $clone->isProduction = (bool) $cafe->midtrans_is_production;
+            $clone->isProduction = $this->isProduction;
             $clone->baseUrl = $clone->isProduction
                 ? 'https://api.midtrans.com'
                 : 'https://api.sandbox.midtrans.com';
@@ -49,7 +51,7 @@ class MidtransService
     /**
      * Generate a QRIS code for a transaction.
      */
-    public function generateQris(\App\Models\Transaction $transaction): array
+    public function generateQris(Transaction $transaction): array
     {
         $cafe = $transaction->cafe;
         $orderId = $transaction->transaction_number;
@@ -104,7 +106,7 @@ class MidtransService
 
         $service = $this->forCafe($cafe);
 
-        $response = \Illuminate\Support\Facades\Http::timeout(10)
+        $response = Http::timeout(10)
             ->withBasicAuth($service->serverKey, '')
             ->withHeaders([
                 'Accept' => 'application/json',
@@ -122,7 +124,7 @@ class MidtransService
     /**
      * Create a Snap token for a POS transaction.
      */
-    public function createTransactionSnapToken(\App\Models\Transaction $transaction): string
+    public function createTransactionSnapToken(Transaction $transaction): string
     {
         $cafe = $transaction->cafe;
         $orderId = $transaction->transaction_number;
@@ -303,7 +305,7 @@ class MidtransService
 
         return $payment;
     }
-    
+
     /**
      * Check transaction status from Midtrans API.
      */

@@ -15,4 +15,9 @@ class CashierLogin extends Login
     {
         return 'Panel Kasir - Point of Sale';
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return filament()->getCurrentPanel()->getUrl();
+    }
 }

@@ -8,6 +8,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
@@ -49,8 +50,6 @@ class CafeForm
                             ->visible($isSuperAdmin)
                             ->helperText('Cafe nonaktif akan disembunyikan dari pemilihan data utama.'),
                     ]),
-
-
 
                 Section::make('Pengaturan Transaksi')
                     ->description('Tax dan service charge yang diterapkan pada setiap transaksi di cafe ini.')
@@ -104,7 +103,7 @@ class CafeForm
                             ->required()
                             ->live(),
 
-                        \Filament\Schemas\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
                                 TextInput::make('midtrans_merchant_id')
                                     ->label('Midtrans Merchant ID')
@@ -120,9 +119,6 @@ class CafeForm
                                     ->revealable()
                                     ->placeholder('SB-Mid-server-xxxxxxxx')
                                     ->required(fn ($get) => $get('qris_type') === 'midtrans'),
-                                Toggle::make('midtrans_is_production')
-                                    ->label('Mode Produksi')
-                                    ->helperText('Aktifkan jika menggunakan akun Midtrans Production.'),
                             ])
                             ->visible(fn ($get) => $get('qris_type') === 'midtrans'),
                     ]),

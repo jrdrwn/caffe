@@ -12,7 +12,6 @@ use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -25,13 +24,13 @@ class UserResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-users';
 
-    protected static ?string $navigationLabel = 'Pengguna';
+    protected static ?string $navigationLabel = 'Kasir';
 
-    protected static ?string $pluralModelLabel = 'Pengguna';
+    protected static ?string $pluralModelLabel = 'Kasir';
 
-    protected static ?string $modelLabel = 'Pengguna';
+    protected static ?string $modelLabel = 'Kasir';
 
-    protected static ?string $roleNavigationGroup = 'Manajemen Pengguna';
+    // protected static ?string $roleNavigationGroup = 'Manajemen Pengguna';
 
     protected static array $allowedRoles = ['manager'];
 

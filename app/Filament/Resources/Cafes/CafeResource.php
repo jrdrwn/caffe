@@ -43,16 +43,16 @@ class CafeResource extends Resource
 
     protected static ?string $modelLabel = 'Kafe';
 
-    protected static ?string $roleNavigationGroup = 'Platform';
+    // protected static ?string $roleNavigationGroup = 'Platform';
 
-    public static function getNavigationGroup(): ?string
-    {
-        if (Auth::user()?->role === 'super_admin') {
-            return null;
-        }
+    // public static function getNavigationGroup(): ?string
+    // {
+    //     if (Auth::user()?->role === 'super_admin') {
+    //         return null;
+    //     }
 
-        return 'Kafe & Manajer';
-    }
+    //     return 'Kafe & Manajer';
+    // }
 
     /**
      * super_admin : read-only (list + view)
@@ -125,7 +125,7 @@ class CafeResource extends Resource
         $items = [
             NavigationItem::make('Detail')
                 ->icon(Heroicon::OutlinedEye)
-                ->isActiveWhen(fn(): bool => $page::getRouteName() === ViewCafe::getRouteName())
+                ->isActiveWhen(fn (): bool => $page::getRouteName() === ViewCafe::getRouteName())
                 ->url(static::getUrl('view', ['record' => $record])),
         ];
 
@@ -133,7 +133,7 @@ class CafeResource extends Resource
         if (static::canEdit($record)) {
             $items[] = NavigationItem::make('Edit')
                 ->icon(Heroicon::OutlinedPencilSquare)
-                ->isActiveWhen(fn(): bool => $page::getRouteName() === EditCafe::getRouteName())
+                ->isActiveWhen(fn (): bool => $page::getRouteName() === EditCafe::getRouteName())
                 ->url(static::getUrl('edit', ['record' => $record]));
         }
 

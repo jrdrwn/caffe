@@ -26,7 +26,7 @@ class ManagerLowStockTable extends TableWidget
     {
         return $table
             ->query(
-                fn (): Builder => Product::query()
+                fn(): Builder => Product::query()
                     ->where('cafe_id', Auth::user()?->cafe_id)
                     ->where('is_active', true)
                     ->where('stock', '<=', 10)
@@ -40,7 +40,7 @@ class ManagerLowStockTable extends TableWidget
                 TextColumn::make('stock')
                     ->label('Stok')
                     ->badge()
-                    ->color(fn (int $state): string => $state <= 5 ? 'danger' : 'warning')
+                    ->color(fn(int $state): string => $state <= 5 ? 'danger' : 'warning')
                     ->sortable(),
             ])
             ->emptyStateHeading('Semua stok aman')
@@ -48,6 +48,6 @@ class ManagerLowStockTable extends TableWidget
             ->emptyStateIcon('heroicon-o-check-circle')
             ->striped()
             ->searchable(false)
-            ->defaultPaginationPageOption(5);
+            ->defaultPaginationPageOption(1);
     }
 }

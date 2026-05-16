@@ -12,4 +12,9 @@ class ManagerLogin extends Login
     }
 
     // Removed getSubheading() override to allow register action to show
+
+    protected function getRedirectUrl(): string
+    {
+        return filament()->getCurrentPanel()->getUrl();
+    }
 }

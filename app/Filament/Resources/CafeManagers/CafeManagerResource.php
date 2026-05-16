@@ -31,7 +31,7 @@ class CafeManagerResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'manager_id';
 
-    protected static ?string $roleNavigationGroup = 'Manajemen Pengguna';
+    // protected static ?string $roleNavigationGroup = 'Manajemen Pengguna';
 
     protected static array $allowedRoles = ['super_admin'];
 

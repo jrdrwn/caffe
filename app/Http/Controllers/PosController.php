@@ -2,99 +2,42 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cafe;
+use App\Models\CashFlow;
 use App\Models\InventoryLog;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
-use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
+use App\Services\MidtransService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PosController extends Controller
 {
     public function checkout(Request $request)
     {
-        $request->validate([
-            'cart' => 'required|array|min:1',
-            'cart.*.id' => 'required|integer|exists:products,id',
-            'cart.*.qty' => 'required|integer|min:1',
-            'cart.*.notes' => 'nullable|string|max:255',
-            'payment_method' => 'required|string|in:cash,debit,qris',
-            'discount_amount' => 'required|numeric|min:0',
-            'paid_amount' => 'required|numeric|min:0',
-            'change_amount' => 'required|numeric|min:0',
-        ]);
-
         $user = Auth::user();
-        if (! $user || $user->role !== 'cashier') {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        $validated = $request->input('pos_validated_data');
+
+        if (! $validated) {
+            return response()->json(['message' => 'Data validasi tidak ditemukan.'], 500);
         }
 
-        if (! $user->cafe_id) {
-            return response()->json(['message' => 'Akun kasir belum terhubung ke cafe.'], 400);
-        }
-
-        $cart = $request->input('cart');
         $paymentMethod = $request->input('payment_method');
-        $discountAmount = (int) $request->input('discount_amount');
         $paidAmount = (int) $request->input('paid_amount');
-        $changeAmount = (int) $request->input('change_amount');
 
-        // Tax & service are authoritative from the cafe — never trust the client
-        $cafe = $user->cafe;
-        $taxRate = (int) ($cafe?->tax_percentage ?? 0);
-        $serviceRate = (int) ($cafe?->service_charge_percentage ?? 0);
+        $totalAmount = $validated['total_amount'];
+        $discountAmount = $validated['discount_amount'];
+        $taxAmount = $validated['tax_amount'];
+        $serviceAmount = $validated['service_charge_amount'];
+        $cartDetails = $validated['cart_details'];
+        $changeAmount = max(0, $paidAmount - $totalAmount);
 
         try {
-            return DB::transaction(function () use ($user, $cart, $paymentMethod, $taxRate, $serviceRate, $paidAmount, $changeAmount) {
-                $subtotal = 0;
-                $cartDetails = [];
-
-                foreach ($cart as $item) {
-                    $product = Product::whereId($item['id'])
-                        ->where('cafe_id', $user->cafe_id)
-                        ->first();
-
-                    if (! $product) {
-                        throw new \Exception("Produk #{$item['id']} tidak ditemukan untuk cafe ini.");
-                    }
-
-                    $qty = (int) $item['qty'];
-                    if ($qty > $product->stock) {
-                        throw new \Exception("Stok tidak cukup untuk produk: {$product->name}.");
-                    }
-
-                    $itemSubtotal = $product->price * $qty;
-                    $subtotal += $itemSubtotal;
-
-                    $cartDetails[] = [
-                        'product' => $product,
-                        'qty' => $qty,
-                        'price' => $product->price,
-                        'discount_pct' => (int) $product->discount_percentage,
-                        'subtotal' => $itemSubtotal,
-                        'notes' => $item['notes'] ?? null,
-                    ];
-                }
-
-                $calculatedDiscount = 0;
-                foreach ($cartDetails as $detail) {
-                    $calculatedDiscount += (int) round($detail['price'] * ($detail['discount_pct'] / 100)) * $detail['qty'];
-                }
-
-                $netSubtotal = $subtotal - $calculatedDiscount;
-                $taxAmount = (int) round($netSubtotal * $taxRate / 100);
-                $serviceAmount = (int) round($netSubtotal * $serviceRate / 100);
-                $discountAmount = $calculatedDiscount;
-                $totalAmount = $netSubtotal + $taxAmount + $serviceAmount;
-
-                if ($paidAmount < $totalAmount) {
-                    throw new \Exception('Jumlah pembayaran kurang dari total.');
-                }
-
-                $changeAmount = max(0, $paidAmount - $totalAmount);
+            return DB::transaction(function () use ($user, $cartDetails, $paymentMethod, $totalAmount, $discountAmount, $taxAmount, $serviceAmount, $paidAmount, $changeAmount) {
 
                 // Transaction status mirrors payment settlement:
                 // cash = completed immediately; debit/qris = pending until confirmed
@@ -168,12 +111,12 @@ class PosController extends Controller
 
                 $qrisData = null;
                 if ($paymentMethod === 'qris') {
-                    $cafeRecord = \App\Models\Cafe::find($user->cafe_id);
+                    $cafeRecord = Cafe::find($user->cafe_id);
                     $effectiveQrisType = $cafeRecord->qris_type ?? (filled($cafeRecord->midtrans_server_key) ? 'midtrans' : 'manual');
 
                     if ($effectiveQrisType === 'midtrans') {
                         try {
-                            $midtransResponse = app(\App\Services\MidtransService::class)->generateQris($transaction);
+                            $midtransResponse = app(MidtransService::class)->generateQris($transaction);
 
                             // Find the QR code action in Midtrans response
                             $qrAction = collect($midtransResponse['actions'] ?? [])->where('name', 'generate-qr-code')->first();
@@ -191,7 +134,7 @@ class PosController extends Controller
 
                             $payment->update(['metadata' => $qrisData]);
                         } catch (\Exception $e) {
-                            \Illuminate\Support\Facades\Log::error('Midtrans QRIS Error: '.$e->getMessage());
+                            Log::error('Midtrans QRIS Error: '.$e->getMessage());
                             throw new \Exception('Gagal terhubung ke Midtrans: '.$e->getMessage());
                         }
                     }
@@ -214,7 +157,7 @@ class PosController extends Controller
 
     public function checkStatus(string $transactionNumber)
     {
-        $transaction = \App\Models\Transaction::where('transaction_number', $transactionNumber)
+        $transaction = Transaction::where('transaction_number', $transactionNumber)
             ->where('cafe_id', Auth::user()->cafe_id)
             ->first();
 
@@ -229,7 +172,7 @@ class PosController extends Controller
 
         // If pending, try to check Midtrans directly for latest status
         try {
-            $midtrans = app(\App\Services\MidtransService::class)->forCafe($transaction->cafe);
+            $midtrans = app(MidtransService::class)->forCafe($transaction->cafe);
             $statusResponse = $midtrans->checkStatus($transactionNumber);
 
             $transactionStatus = $statusResponse['transaction_status'] ?? '';
@@ -240,8 +183,8 @@ class PosController extends Controller
 
                 // Record to cash flow if not already done
                 // Note: cafe project does not have CashFlow model yet, so we skip it or handle it if it exists
-                if (class_exists(\App\Models\CashFlow::class)) {
-                    \App\Models\CashFlow::firstOrCreate(
+                if (class_exists(CashFlow::class)) {
+                    CashFlow::firstOrCreate(
                         ['reference_id' => $transaction->id, 'reference_type' => 'transaction'],
                         [
                             'cafe_id' => $transaction->cafe_id,
@@ -273,7 +216,7 @@ class PosController extends Controller
     public function cancelOrder(string $transactionNumber)
     {
         $user = Auth::user();
-        $transaction = \App\Models\Transaction::where('transaction_number', $transactionNumber)
+        $transaction = Transaction::where('transaction_number', $transactionNumber)
             ->where('cafe_id', $user->cafe_id)
             ->where('status', 'pending')
             ->first();
@@ -293,7 +236,7 @@ class PosController extends Controller
                     $product->increment('stock', $item->quantity);
                     $after = $product->stock;
 
-                    \App\Models\InventoryLog::create([
+                    InventoryLog::create([
                         'cafe_id' => $user->cafe_id,
                         'product_id' => $product->id,
                         'action' => 'adjustment',

@@ -87,6 +87,39 @@ class CafeInfolist
                             ->formatStateUsing(fn ($state): string => 'Rp '.number_format((int) $state, 0, ',', '.'))
                             ->placeholder('Belum diatur'),
                     ]),
+
+                Section::make('Payment Gateway (QRIS)')
+                    ->description('Detail konfigurasi pembayaran otomatis.')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('qris_type')
+                            ->label('Tipe QRIS')
+                            ->formatStateUsing(fn (string $state): string => match ($state) {
+                                'manual' => 'Manual (Scan Statis)',
+                                'midtrans' => 'Otomatis (Midtrans)',
+                                default => $state,
+                            })
+                            ->badge()
+                            ->color(fn (string $state): string => $state === 'midtrans' ? 'success' : 'gray'),
+
+                        TextEntry::make('midtrans_merchant_id')
+                            ->label('Merchant ID')
+                            ->placeholder('Tidak diset')
+                            ->visible(fn ($record) => $record->qris_type === 'midtrans'),
+
+                        TextEntry::make('midtrans_client_key')
+                            ->label('Client Key')
+                            ->placeholder('Tidak diset')
+                            ->visible(fn ($record) => $record->qris_type === 'midtrans'),
+
+                        TextEntry::make('midtrans_is_production')
+                            ->label('Mode Sistem')
+                            ->formatStateUsing(fn (): string => config('midtrans.is_production') ? 'Produksi (Live)' : 'Sandbox (Testing)')
+                            ->helperText('Otomatis mengikuti environment sistem.')
+                            ->badge()
+                            ->color(fn (): string => config('midtrans.is_production') ? 'danger' : 'info')
+                            ->visible(fn ($record) => $record->qris_type === 'midtrans'),
+                    ]),
             ]);
     }
 }

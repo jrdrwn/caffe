@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Subscription;
+use App\Models\SubscriptionPayment;
 use App\Services\MidtransService;
+use App\Services\SubscriptionService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -12,8 +16,7 @@ class SubscriptionPaymentController extends Controller
 {
     public function __construct(
         private readonly MidtransService $midtransService
-    ) {
-    }
+    ) {}
 
     /**
      * Get Snap token for subscription upgrade.
@@ -26,7 +29,7 @@ class SubscriptionPaymentController extends Controller
 
         $user = Auth::user();
 
-        if (! $user || $user->role !== 'manager' || ! $user->cafe_id) {
+        if (! $user || ($user->role !== 'manager' && $user->role !== 'owner') || ! $user->cafe_id) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
@@ -36,15 +39,42 @@ class SubscriptionPaymentController extends Controller
             return response()->json(['message' => 'Cafe not found.'], 404);
         }
 
-        $subscription = \App\Models\Subscription::findOrFail($request->input('subscription_id'));
+        $subscription = Subscription::findOrFail($request->input('subscription_id'));
 
+        // Security: Ensure plan is active and available
+        if (! $subscription->is_active) {
+            return response()->json(['message' => 'Paket langganan ini sedang tidak tersedia.'], 422);
+        }
+
+        // Security: Prevent downgrade to free plan if they already have an active paid plan (optional business rule)
+        // Or at least prevent re-activating the exact same plan if it's still far from expiry
         if ($subscription->price <= 0) {
-            // Free plan — activate directly without payment
-            app(\App\Services\SubscriptionService::class)->activateSubscription($cafe, $subscription, 'free-plan');
+            if ($cafe->subscription_id === $subscription->id) {
+                return response()->json(['message' => 'Anda sudah menggunakan paket ini.'], 422);
+            }
+
+            // Direct activation for free plans
+            app(SubscriptionService::class)->activateSubscription($cafe, $subscription, 'free-plan-'.time());
 
             return response()->json([
-                'message' => 'Langganan Free berhasil diaktifkan.',
+                'message' => 'Langganan berhasil diaktifkan.',
                 'redirect' => route('filament.manager.pages.manager-panel-dashboard'),
+            ]);
+        }
+
+        // Security: Check for existing pending payments for this cafe to avoid duplicates
+        $existingPending = SubscriptionPayment::where('cafe_id', $cafe->id)
+            ->where('subscription_id', $subscription->id)
+            ->where('status', 'pending')
+            ->where('created_at', '>', now()->subMinutes(15))
+            ->first();
+
+        if ($existingPending && isset($existingPending->metadata['snap_token'])) {
+            return response()->json([
+                'token' => $existingPending->metadata['snap_token'],
+                'client_key' => $this->midtransService->clientKey(),
+                'snap_url' => $this->midtransService->snapUrl(),
+                'message' => 'Melanjutkan pembayaran yang tertunda.',
             ]);
         }
 
@@ -80,7 +110,7 @@ class SubscriptionPaymentController extends Controller
     /**
      * Payment finish callback (redirect after payment).
      */
-    public function finish(Request $request): \Illuminate\Http\RedirectResponse
+    public function finish(Request $request): RedirectResponse
     {
         $orderId = $request->input('order_id');
         $statusCode = $request->input('status_code');
@@ -93,26 +123,26 @@ class SubscriptionPaymentController extends Controller
                 $status = $this->midtransService->checkStatus($orderId);
                 Log::info('Midtrans status response', $status);
                 $transactionStatus = $status['transaction_status'] ?? '';
-                
+
                 if (in_array($transactionStatus, ['settlement', 'capture'])) {
-                    $payment = \App\Models\SubscriptionPayment::where('order_id', $orderId)->first();
-                    
+                    $payment = SubscriptionPayment::where('order_id', $orderId)->first();
+
                     if ($payment) {
                         Log::info('Payment record found in fallback', ['current_status' => $payment->status]);
-                        
+
                         $payment->update([
                             'status' => 'success',
                             'transaction_id' => $status['transaction_id'] ?? null,
                             'settlement_time' => $status['settlement_time'] ?? now(),
                         ]);
-                        
+
                         Log::info('Activating subscription in fallback');
-                        app(\App\Services\SubscriptionService::class)->activateSubscription(
+                        app(SubscriptionService::class)->activateSubscription(
                             $payment->cafe,
                             $payment->subscription,
                             $status['transaction_id'] ?? $orderId
                         );
-                        
+
                         return redirect()->route('filament.manager.pages.manager-panel-dashboard')
                             ->with('success', 'Pembayaran berhasil diverifikasi (Local Fallback). Paket Anda telah diperbarui.');
                     } else {
@@ -131,7 +161,7 @@ class SubscriptionPaymentController extends Controller
     /**
      * Payment error callback.
      */
-    public function error(Request $request): \Illuminate\Http\RedirectResponse
+    public function error(Request $request): RedirectResponse
     {
         $orderId = $request->input('order_id');
 

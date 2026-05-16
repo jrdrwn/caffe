@@ -27,7 +27,7 @@ class PaymentMethodsTable
                     TextColumn::make('type')
                         ->label('Jenis')
                         ->badge()
-                        ->formatStateUsing(fn (string $state): string => match ($state) {
+                        ->formatStateUsing(fn(string $state): string => match ($state) {
                             'cash' => 'Tunai',
                             'debit' => 'Debit / Kartu',
                             default => 'QRIS',
@@ -35,11 +35,13 @@ class PaymentMethodsTable
                     TextColumn::make('is_active')
                         ->label('Status')
                         ->badge()
-                        ->formatStateUsing(fn (bool $state): string => $state ? 'Aktif' : 'Nonaktif')
-                        ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
+                        ->formatStateUsing(fn(bool $state): string => $state ? 'Aktif' : 'Nonaktif')
+                        ->color(fn(bool $state): string => $state ? 'success' : 'gray'),
                 ])
             ])
+            ->searchable(false)
             ->filters([])
+            ->paginated(false)
             ->recordActions([
                 EditAction::make(),
             ]);
