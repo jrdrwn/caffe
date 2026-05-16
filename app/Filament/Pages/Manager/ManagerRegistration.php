@@ -55,8 +55,8 @@ class ManagerRegistration extends BaseRegister
             $user = $this->getUserModel()::create($data);
 
             // 2. Find free subscription
-            $freeSubscription = Subscription::whereName('Free')
-                ->orWhereName('Free Plan')
+            $freeSubscription = Subscription::where('name', 'Free')
+                ->orWhere('name', 'Free Plan')
                 ->orWhere('price', 0)
                 ->first();
 

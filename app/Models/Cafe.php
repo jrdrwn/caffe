@@ -10,11 +10,25 @@ class Cafe extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'address', 'phone', 'email', 'city', 'province',
-        'description', 'owner_name', 'logo_url', 'is_active',
-        'created_by', 'subscription_id',
-        'tax_percentage', 'service_charge_percentage',
-        'qris_type', 'midtrans_merchant_id', 'midtrans_client_key', 'midtrans_server_key', 'midtrans_is_production',
+        'name',
+        'address',
+        'phone',
+        'email',
+        'city',
+        'province',
+        'description',
+        'owner_name',
+        'logo_url',
+        'is_active',
+        'created_by',
+        'subscription_id',
+        'tax_percentage',
+        'service_charge_percentage',
+        'qris_type',
+        'midtrans_merchant_id',
+        'midtrans_client_key',
+        'midtrans_server_key',
+        'midtrans_is_production',
     ];
 
     protected $casts = [
@@ -30,6 +44,7 @@ class Cafe extends Model
             $cafe->paymentMethods()->createMany([
                 ['name' => 'Tunai', 'type' => 'cash', 'is_active' => true],
                 ['name' => 'QRIS', 'type' => 'qris', 'is_active' => true],
+                ['name' => 'Debit / Kartu', 'type' => 'debit', 'is_active' => false],
             ]);
         });
     }
