@@ -169,7 +169,7 @@
         <section class="flex flex-col lg:flex-row gap-6 min-h-[calc(100vh-10rem)]">
             <!-- Products Section -->
             <section class="flex-1 space-y-6">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-900 p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                <div class="fi-section flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-900 p-6 rounded-3xl shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                     <div class="flex items-center gap-4">
                         <div class="p-3 bg-primary-600 text-white rounded-2xl shadow-lg shadow-primary-600/20">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
@@ -202,7 +202,7 @@
                 <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                     @forelse($products as $product)
                         @php $isOutOfStock = (int) ($product['stock'] ?? 0) <= 0; @endphp
-                        <article class="pos-card group relative flex flex-col rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden {{ $isOutOfStock ? 'opacity-60 grayscale' : '' }}" data-product-id="{{ $product['id'] }}"
+                        <article class="pos-card fi-section group relative flex flex-col rounded-2xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden {{ $isOutOfStock ? 'opacity-60 grayscale' : '' }}" data-product-id="{{ $product['id'] }}"
                             data-category-id="{{ $product['category_id'] ?? '' }}"
                             data-stock="{{ (int) ($product['stock'] ?? 0) }}"
                             data-sku="{{ $product['sku'] ?? '' }}"
@@ -264,7 +264,7 @@
             <!-- Sidebar -->
             <aside class="w-full lg:w-[420px] space-y-4">
                 <!-- Cart Section -->
-                <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col overflow-hidden">
+                <div class="fi-section bg-white dark:bg-gray-900 rounded-2xl shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 flex flex-col overflow-hidden">
                     <div class="p-4 border-b border-gray-50 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-950/50 flex items-center justify-between">
                         <div class="flex items-center gap-2 font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-primary-600"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -280,7 +280,7 @@
                 </div>
 
                 <!-- Pricing Summary -->
-                <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden" id="pricing-panel" style="display:none">
+                <div class="fi-section bg-white dark:bg-gray-900 rounded-2xl shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 overflow-hidden" id="pricing-panel" style="display:none">
                     <div class="p-4 border-b border-gray-50 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-950/50 flex items-center gap-2 font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">
                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-primary-600"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                          Ringkasan
@@ -335,7 +335,7 @@
                 </div>
 
                 <!-- Payment Section -->
-                <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden" id="payment-panel" style="display:none">
+                <div class="fi-section bg-white dark:bg-gray-900 rounded-2xl shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 overflow-hidden" id="payment-panel" style="display:none">
                     <div class="p-4 border-b border-gray-50 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-950/50 flex items-center gap-2 font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">
                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-primary-600"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                          Pembayaran
@@ -383,7 +383,7 @@
                 </div>
 
                 <!-- System Logs for Debugging -->
-                <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden" id="debug-panel">
+                <div class="fi-section bg-white dark:bg-gray-900 rounded-2xl shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 overflow-hidden" id="debug-panel">
                     <div class="p-3 border-b border-gray-50 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-950/30 flex items-center gap-2 font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest text-[10px]">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
                         Log Sistem

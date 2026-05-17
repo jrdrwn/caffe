@@ -6,7 +6,7 @@
         collapsible
         collapsed
     >
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div class="fi-wi-stats-overview-stats-ctn grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             @foreach ($this->getStats() as $stat)
                 @php
                     $colorVar = match ($stat['color']) {
@@ -19,19 +19,19 @@
                     };
                 @endphp
 
-                <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
-                    <p class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                <div class="fi-wi-stats-overview-stat rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
+                    <p class="fi-wi-stats-overview-stat-label text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
                         {{ $stat['label'] }}
                     </p>
 
-                    <p class="mt-2 text-2xl font-bold tracking-tight text-gray-950 dark:text-white">
+                    <p class="fi-wi-stats-overview-stat-value mt-2 text-2xl font-bold tracking-tight text-gray-950 dark:text-white">
                         {{ $stat['value'] }}
                     </p>
 
-                    <p class="mt-1 flex items-center gap-1.5 text-xs font-medium" style="color: {{ $colorVar }}">
+                    <p class="fi-wi-stats-overview-stat-description mt-1 flex items-center gap-1.5 text-xs font-medium" style="color: {{ $colorVar }}">
                         <x-filament::icon
                             :icon="$stat['icon']"
-                            class="h-3.5 w-3.5 shrink-0"
+                            class="fi-wi-stats-overview-stat-description-icon h-3.5 w-3.5 shrink-0"
                         />
                         {{ $stat['description'] }}
                     </p>

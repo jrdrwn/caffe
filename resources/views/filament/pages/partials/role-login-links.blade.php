@@ -1,6 +1,6 @@
-<div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+<div class="mt-8 pt-6 border-t border-gray-200 dark:border-white/10">
     <div class="text-center mb-4">
-        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+        <p class="fi-section-header-description text-sm font-medium text-gray-500 dark:text-gray-400">
             Login sebagai role lain?
         </p>
     </div>
@@ -9,26 +9,26 @@
         @foreach ($links as $link)
             <a
                 href="{{ $link['url'] }}"
-                class="flex items-center gap-3 p-4 rounded-lg border border-gray-300 dark:border-gray-600 hover:border-primary-500 dark:hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-all duration-200 group"
+                class="fi-btn fi-btn-color-gray flex items-center gap-3 p-4 rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:bg-gray-50 hover:ring-1 hover:ring-primary-500 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:ring-primary-500 no-underline group"
             >
-                <div class="flex-shrink-0">
+                <div class="shrink-0 text-gray-400 group-hover:text-primary-500 transition-colors">
                     <x-filament::icon
                         :icon="$link['icon']"
-                        class="h-6 w-6 text-gray-500 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors"
+                        class="w-6 h-6"
                     />
                 </div>
                 <div class="flex-1 text-left">
-                    <div class="font-semibold text-sm text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                    <div class="font-semibold text-sm text-gray-950 dark:text-white group-hover:text-primary-500 transition-colors mb-0.5">
                         {{ $link['name'] }}
                     </div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
                         {{ $link['description'] }}
                     </div>
                 </div>
-                <div class="flex-shrink-0">
+                <div class="shrink-0 text-gray-400 group-hover:text-primary-500 transition-colors opacity-50 group-hover:opacity-100 transform group-hover:translate-x-1">
                     <x-filament::icon
                         icon="heroicon-m-arrow-right"
-                        class="h-4 w-4 text-gray-400 group-hover:text-primary-500 group-hover:translate-x-1 transition-all duration-200"
+                        class="w-4 h-4"
                     />
                 </div>
             </a>

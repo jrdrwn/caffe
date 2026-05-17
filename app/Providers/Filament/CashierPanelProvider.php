@@ -63,6 +63,8 @@ class CashierPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
                 fn(): string => Blade::render('<x-cashier-role-links />')
-            );
+            )->plugins([
+                LightSwitchPlugin::make(),
+            ]);
     }
 }

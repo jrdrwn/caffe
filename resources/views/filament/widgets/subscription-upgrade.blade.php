@@ -12,8 +12,8 @@
         @endphp
 
         @if ($currentPlan)
-            <div class="mb-4 rounded-lg bg-gray-50 p-3 dark:bg-gray-800 flex justify-between items-center">
-                <p class="text-sm text-gray-600 dark:text-gray-400">
+            <div class="fi-section-header mb-4 rounded-lg bg-gray-50 p-3 dark:bg-gray-800 flex justify-between items-center">
+                <p class="fi-section-header-description text-sm text-gray-600 dark:text-gray-400">
                     Paket aktif saat ini:
                     <x-filament::badge :color="$currentPlan['color']" class="ml-1">
                         {{ $currentPlan['name'] }}
@@ -32,18 +32,18 @@
                         }
                     }"
                     x-init="setInterval(() => { if (seconds > 0) seconds--; else window.location.reload(); }, 1000)"
-                    class="text-sm font-semibold text-primary-600 dark:text-primary-400">
+                    class="fi-badge text-sm font-semibold text-primary-600 dark:text-primary-400">
                         Sisa Waktu: <span x-text="formatTime()"></span>
                     </div>
                 @else
-                    <div class="text-sm font-semibold text-gray-500 dark:text-gray-400">
+                    <div class="fi-badge text-sm font-semibold text-gray-500 dark:text-gray-400">
                         Masa Aktif: Selamanya / Tidak Terbatas
                     </div>
                 @endif
             </div>
         @endif
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="fi-wi-stats-overview-stats-ctn grid grid-cols-1 gap-4 sm:grid-cols-2">
             @foreach ($plans as $planData)
                 @php
                     $isCurrent = $currentPlan && $currentPlan['name'] === $planData['name'];
@@ -58,18 +58,18 @@
                     };
                 @endphp
 
-                <div class="relative flex flex-col rounded-xl border-2 p-5 transition hover:shadow-md dark:border-gray-700 dark:bg-gray-900"
+                <div class="fi-wi-stats-overview-stat relative flex flex-col rounded-xl border-2 p-5 transition hover:shadow-md dark:border-gray-700 dark:bg-gray-900"
                     style="border-color: {{ $isCurrent ? $colorVar : 'transparent' }};">
 
                     @if ($isCurrent)
-                        <div class="absolute -top-3 right-4 rounded-full px-3 py-0.5 text-xs font-semibold text-white"
+                        <div class="fi-badge absolute -top-3 right-4 rounded-full px-3 py-0.5 text-xs font-semibold text-white"
                             style="background-color: {{ $colorVar }}">
                             Aktif
                         </div>
                     @endif
 
                     <div class="mb-3 flex items-center justify-between">
-                        <h3 class="text-lg font-bold text-gray-950 dark:text-white">
+                        <h3 class="fi-wi-stats-overview-stat-label text-lg font-bold text-gray-950 dark:text-white">
                             {{ $planData['name'] }}
                         </h3>
                         <x-filament::badge :color="$color">
@@ -78,15 +78,15 @@
                     </div>
 
                     <div class="mb-4">
-                        <span class="text-3xl font-extrabold tracking-tight text-gray-950 dark:text-white">
+                        <span class="fi-wi-stats-overview-stat-value text-3xl font-extrabold tracking-tight text-gray-950 dark:text-white">
                             Rp {{ number_format($planData['price'], 0, ',', '.') }}
                         </span>
-                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                        <span class="fi-wi-stats-overview-stat-description text-sm text-gray-500 dark:text-gray-400">
                             / {{ $planData['duration_months'] > 0 ? $planData['duration_months'].' bulan' : 'selamanya' }}
                         </span>
                     </div>
 
-                    <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                    <p class="fi-wi-stats-overview-stat-description mb-4 text-sm text-gray-600 dark:text-gray-400">
                         {{ $planData['plan']->description() }}
                     </p>
 
@@ -162,7 +162,7 @@
         
         @if (count($stats) > 0)
             <div class="mt-6 border-t pt-4 dark:border-gray-700">
-                <h4 class="text-md font-semibold mb-3 text-gray-950 dark:text-white">Status Penggunaan & Fitur</h4>
+                <h4 class="fi-section-header-heading text-md font-semibold mb-3 text-gray-950 dark:text-white">Status Penggunaan & Fitur</h4>
                 <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     @foreach ($stats as $stat)
                         <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800 flex items-center gap-3">
