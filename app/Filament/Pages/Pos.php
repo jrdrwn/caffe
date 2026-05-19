@@ -28,6 +28,12 @@ class Pos extends Page
 
     public ?string $cafeLogo = null;
 
+    public ?string $cafeAddress = null;
+
+    public ?string $cafeCity = null;
+
+    public ?string $cafeProvince = null;
+
     /** Tax percentage from the cafe — read-only in POS */
     public int $taxPercentage = 0;
 
@@ -62,6 +68,9 @@ class Pos extends Page
                 $this->serviceChargePercentage = (int) $cafe->service_charge_percentage;
                 $this->cafeName = $cafe->name;
                 $this->cafeLogo = $cafe->logo_url;
+                $this->cafeAddress = $cafe->address;
+                $this->cafeCity = $cafe->city;
+                $this->cafeProvince = $cafe->province;
                 $this->qrisType = $cafe->qris_type ?? 'manual';
                 $this->midtransClientKey = $cafe->midtrans_client_key;
 
@@ -86,12 +95,12 @@ class Pos extends Page
                 $products = $products->map(function ($product) use ($canUseVariants, $canUseDiscounts) {
                     $arr = $product->toArray();
                     // If variants are not allowed, treat all products as non-variant
-                    if (!$canUseVariants) {
+                    if (! $canUseVariants) {
                         $arr['has_variants'] = false;
                         $arr['variants'] = null;
                     }
                     // If discounts are not allowed, zero out discount
-                    if (!$canUseDiscounts) {
+                    if (! $canUseDiscounts) {
                         $arr['discount_percentage'] = 0;
                     }
 

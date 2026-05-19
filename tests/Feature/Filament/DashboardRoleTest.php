@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\SubscriptionPlan;
 use App\Filament\Pages\CashierDashboard;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\ManagerDashboard;
@@ -37,8 +38,13 @@ test('super admin dashboard memantau cafe, manager, dan subscription', function 
     $manager = User::factory()->createOne(['role' => 'manager', 'is_active' => true]);
 
     $subscription = Subscription::query()->create([
-        'name' => 'Pro Plan', 'price' => 250000, 'duration_months' => 1,
-        'features' => ['reports'], 'is_active' => true,
+        'name' => 'Premium Plan',
+        'plan' => SubscriptionPlan::Premium,
+        'price' => SubscriptionPlan::Premium->price(),
+        'duration_months' => SubscriptionPlan::Premium->durationMonths(),
+        'features' => SubscriptionPlan::Premium->marketingFeatures(),
+        'limits' => SubscriptionPlan::Premium->defaultLimits(),
+        'is_active' => true,
     ]);
 
     $cafe = Cafe::query()->create([

@@ -138,12 +138,13 @@ class CafeForm
                         FileUpload::make('logo_url')
                             ->label('Logo')
                             ->disk('public')
-                            ->image()
                             ->directory('cafe-logos')
                             ->visibility('public')
+                            ->image()
                             ->imageEditor()
                             ->imageAspectRatio('1:1')
                             ->automaticallyOpenImageEditorForAspectRatio()
+                            ->openable()
                             ->maxSize(2048) // 1MB
                             ->columnSpanFull(),
                         Textarea::make('address')

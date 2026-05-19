@@ -5,6 +5,7 @@
         icon="heroicon-o-rocket-launch"
         collapsible
         collapsed
+        class="bg-primary-50/60 dark:bg-primary-950/20 border border-primary-200/50 dark:border-primary-800/40"
     >
         @php
             $currentPlan = $this->getCurrentPlan();
@@ -12,16 +13,16 @@
         @endphp
 
         @if ($currentPlan)
-            <div class="fi-section-header mb-4 rounded-lg bg-gray-50 p-3 dark:bg-gray-800 flex justify-between items-center">
+            <div class="fi-section-header mb-4 rounded-lg bg-primary-50 p-3 dark:bg-primary-950/30 flex justify-between items-center">
                 <p class="fi-section-header-description text-sm text-gray-600 dark:text-gray-400">
                     Paket aktif saat ini:
-                    <x-filament::badge :color="$currentPlan['color']" class="ml-1">
+                    <x-filament::badge color="primary" class="ml-1">
                         {{ $currentPlan['name'] }}
                     </x-filament::badge>
                 </p>
-                
+
                 @if (isset($currentPlan['expiry_seconds']) && $currentPlan['expiry_seconds'] > 0)
-                    <div x-data="{ 
+                    <div x-data="{
                         seconds: {{ $currentPlan['expiry_seconds'] }},
                         formatTime() {
                             const days = Math.floor(this.seconds / 86400);
@@ -43,22 +44,22 @@
             </div>
         @endif
 
-        <div class="fi-wi-stats-overview-stats-ctn grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="fi-wi-stats-overview-stats-ctn grid grid-cols-1 gap-4 sm:grid-cols-3">
             @foreach ($plans as $planData)
                 @php
                     $isCurrent = $currentPlan && $currentPlan['name'] === $planData['name'];
-                    $color = $planData['color'];
-                    $colorVar = match ($color) {
-                        'success'  => 'var(--color-success-500)',
-                        'warning'  => 'var(--color-warning-500)',
-                        'danger'   => 'var(--color-danger-500)',
-                        'info'     => 'var(--color-info-500)',
-                        'primary'  => 'var(--color-primary-500)',
-                        default    => 'var(--color-gray-400)',
-                    };
+                    $planKey = $planData['plan']->value;
+                    $isPremium = $planKey === 'premium';
+                    $isMedium = $planKey === 'medium';
+
+                    $badgeColor = $isPremium ? 'warning' : ($isMedium ? 'primary' : 'gray');
+                    $colorVar = $isPremium ? 'var(--color-warning-500)' : ($isMedium ? 'var(--color-primary-500)' : 'var(--color-gray-400)');
+                    $cardBgClass = $isPremium ? 'bg-warning-50' : ($isMedium ? 'bg-primary-50' : 'bg-transparent');
+                    $cardDarkBgClass = $isPremium ? 'dark:bg-warning-950/20' : ($isMedium ? 'dark:bg-primary-950/20' : 'dark:bg-gray-900');
+                    $accentBgClass = $isPremium ? 'bg-warning-50 dark:bg-warning-950/30' : ($isMedium ? 'bg-primary-50 dark:bg-primary-950/30' : 'bg-gray-50 dark:bg-gray-800');
                 @endphp
 
-                <div class="fi-wi-stats-overview-stat relative flex flex-col rounded-xl border-2 p-5 transition hover:shadow-md dark:border-gray-700 dark:bg-gray-900"
+                <div class="fi-wi-stats-overview-stat relative flex flex-col rounded-xl border-2 p-5 transition hover:shadow-md dark:border-gray-700 {{ $cardBgClass }} {{ $cardDarkBgClass }}"
                     style="border-color: {{ $isCurrent ? $colorVar : 'transparent' }};">
 
                     @if ($isCurrent)
@@ -72,7 +73,7 @@
                         <h3 class="fi-wi-stats-overview-stat-label text-lg font-bold text-gray-950 dark:text-white">
                             {{ $planData['name'] }}
                         </h3>
-                        <x-filament::badge :color="$color">
+                        <x-filament::badge :color="$badgeColor">
                             {{ $planData['plan']->getLabel() }}
                         </x-filament::badge>
                     </div>
@@ -104,7 +105,7 @@
                     </ul>
 
                     <div class="mt-auto space-y-2">
-                        <div class="rounded-lg bg-gray-50 p-3 text-xs text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                        <div class="rounded-lg p-3 text-xs text-gray-500 dark:text-gray-400 {{ $accentBgClass }}">
                             <p class="font-semibold mb-1">Batas Penggunaan:</p>
                             <ul class="space-y-1">
                                 <li>Produk: {{ is_null($planData['limits']['max_products']) ? 'Tidak terbatas' : $planData['limits']['max_products'] }}</li>
@@ -114,7 +115,7 @@
                             </ul>
                         </div>
 
-                        <div class="rounded-lg bg-gray-50 p-3 text-xs text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                        <div class="rounded-lg p-3 text-xs text-gray-500 dark:text-gray-400 {{ $accentBgClass }}">
                             <p class="font-semibold mb-1">Fitur Lanjutan:</p>
                             <ul class="space-y-1">
                                 <li class="flex items-center gap-1">
@@ -159,13 +160,13 @@
         @php
             $stats = $this->getStatusStats();
         @endphp
-        
+
         @if (count($stats) > 0)
             <div class="mt-6 border-t pt-4 dark:border-gray-700">
                 <h4 class="fi-section-header-heading text-md font-semibold mb-3 text-gray-950 dark:text-white">Status Penggunaan & Fitur</h4>
                 <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     @foreach ($stats as $stat)
-                        <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800 flex items-center gap-3">
+                        <div class="rounded-lg bg-primary-50 p-3 dark:bg-primary-950/30 flex items-center gap-3">
                             <x-filament::icon :icon="$stat['icon']" class="h-6 w-6" style="color: var(--color-{{ $stat['color'] }}-500)" />
                             <div>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">{{ $stat['label'] }}</p>

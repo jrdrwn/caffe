@@ -63,10 +63,10 @@ class SubscriptionStatusWidget extends Widget
         $stats[] = $this->usageStat('Staff', $cafe->users()->where('role', 'cashier')->count(), $subscription?->getLimit('max_staff'), 'heroicon-m-users');
         $stats[] = $this->usageStat('Metode Pembayaran', $cafe->paymentMethods()->count(), $subscription?->getLimit('max_payment_methods'), 'heroicon-m-banknotes');
 
-        $stats[] = $this->featureStat('Inventori', $service->canUseInventory($cafe), 'heroicon-m-archive-box', 'Pro');
-        $stats[] = $this->featureStat('Varian Produk', $service->canUseVariants($cafe), 'heroicon-m-adjustments-horizontal', 'Pro');
-        $stats[] = $this->featureStat('Diskon Produk', $service->canUseDiscounts($cafe), 'heroicon-m-receipt-percent', 'Pro');
-        $stats[] = $this->featureStat('Ekspor Laporan', $service->canExportReports($cafe), 'heroicon-m-document-arrow-down', 'Pro');
+        $stats[] = $this->featureStat('Inventori', $service->canUseInventory($cafe), 'heroicon-m-archive-box', 'Medium');
+        $stats[] = $this->featureStat('Varian Produk', $service->canUseVariants($cafe), 'heroicon-m-adjustments-horizontal', 'Medium');
+        $stats[] = $this->featureStat('Diskon Produk', $service->canUseDiscounts($cafe), 'heroicon-m-receipt-percent', 'Medium');
+        $stats[] = $this->featureStat('Ekspor Laporan', $service->canExportReports($cafe), 'heroicon-m-document-arrow-down', 'Medium');
 
         return $stats;
     }
@@ -80,7 +80,7 @@ class SubscriptionStatusWidget extends Widget
 
         $pct = $max > 0 ? ($used / $max) * 100 : 100;
         $color = $pct >= 100 ? 'danger' : ($pct >= 75 ? 'warning' : 'success');
-        $description = $pct >= 100 ? 'Batas tercapai — upgrade ke Pro untuk menambah' : "{$used} / {$max} digunakan";
+        $description = $pct >= 100 ? 'Batas tercapai — upgrade ke Medium untuk menambah' : "{$used} / {$max} digunakan";
 
         return ['label' => $label, 'value' => "{$used} / {$max}", 'description' => $description, 'icon' => $icon, 'color' => $color];
     }

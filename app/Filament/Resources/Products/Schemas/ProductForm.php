@@ -14,6 +14,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
 class ProductForm
@@ -62,7 +63,18 @@ class ProductForm
                             ->maxLength(100),
                         Select::make('category_id')
                             ->label('Kategori')
-                            ->relationship('category', 'name')
+                            ->relationship(
+                                name: 'category',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: function (Builder $query) {
+                                    $user = Auth::user();
+                                    if ($user?->role === 'manager' && filled($user->cafe_id)) {
+                                        return $query->where('cafe_id', $user->cafe_id);
+                                    }
+
+                                    return $query;
+                                }
+                            )
                             ->searchable()
                             ->preload()
                             ->required(),
@@ -108,7 +120,7 @@ class ProductForm
                     ->schema([
                         Placeholder::make('discount_locked')
                             ->label('')
-                            ->content('🔒 Fitur diskon tersedia di paket Pro. Upgrade paket Anda untuk mengaktifkan diskon per produk.'),
+                            ->content('🔒 Fitur diskon tersedia di paket Medium. Upgrade paket Anda untuk mengaktifkan diskon per produk.'),
                     ]),
 
                 Section::make('Varian Produk')
@@ -143,7 +155,7 @@ class ProductForm
                             : [
                                 Placeholder::make('variants_locked')
                                     ->label('')
-                                    ->content('🔒 Fitur varian produk tersedia di paket Pro. Upgrade paket Anda untuk mengaktifkan varian ukuran, suhu, dan lainnya.'),
+                                    ->content('🔒 Fitur varian produk tersedia di paket Medium. Upgrade paket Anda untuk mengaktifkan varian ukuran, suhu, dan lainnya.'),
                             ]
                     ),
             ]);

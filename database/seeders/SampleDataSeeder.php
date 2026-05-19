@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\SubscriptionPlan;
 use App\Models\Cafe;
 use App\Models\CafeManager;
 use App\Models\Category;
@@ -105,21 +106,17 @@ class SampleDataSeeder extends Seeder
             }
 
             // Subscription sample
-            Subscription::create([
-                'name' => 'Free Plan',
-                'price' => 0,
-                'duration_months' => 0,
-                'features' => ['basic_pos', 'product_management'],
-                'is_active' => true,
-            ]);
-
-            Subscription::create([
-                'name' => 'Pro Plan',
-                'price' => 99000,
-                'duration_months' => 1,
-                'features' => ['advanced_reports', 'multiple-stores'],
-                'is_active' => true,
-            ]);
+            foreach ([SubscriptionPlan::Free, SubscriptionPlan::Medium, SubscriptionPlan::Premium] as $plan) {
+                Subscription::create([
+                    'name' => $plan->getLabel().' Plan',
+                    'plan' => $plan,
+                    'price' => $plan->price(),
+                    'duration_months' => $plan->durationMonths(),
+                    'features' => $plan->marketingFeatures(),
+                    'limits' => null,
+                    'is_active' => true,
+                ]);
+            }
         });
     }
 }

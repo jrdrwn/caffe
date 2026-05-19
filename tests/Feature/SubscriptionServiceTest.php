@@ -19,7 +19,7 @@ test('effectiveLimits returns plan defaults when no custom limits are set', func
     $limits = $subscription->effectiveLimits();
 
     expect($limits['max_products'])->toBe(10)
-        ->and($limits['max_categories'])->toBe(3)
+        ->and($limits['max_categories'])->toBe(1)
         ->and($limits['can_export_reports'])->toBeFalse()
         ->and($limits['can_use_variants'])->toBeFalse();
 });
@@ -32,18 +32,18 @@ test('effectiveLimits merges custom limits over plan defaults', function () {
     $limits = $subscription->effectiveLimits();
 
     expect($limits['max_products'])->toBe(25)   // overridden
-        ->and($limits['max_categories'])->toBe(3); // still plan default
+        ->and($limits['max_categories'])->toBe(1); // still plan default
 });
 
 test('getLimit returns null for unlimited plans', function () {
-    $subscription = Subscription::factory()->pro()->make();
+    $subscription = Subscription::factory()->premium()->make();
 
     expect($subscription->getLimit('max_products'))->toBeNull()
         ->and($subscription->getLimit('max_categories'))->toBeNull();
 });
 
-test('hasFeature returns true for pro plan features', function () {
-    $subscription = Subscription::factory()->pro()->make();
+test('hasFeature returns true for medium plan features', function () {
+    $subscription = Subscription::factory()->medium()->make();
 
     expect($subscription->hasFeature('can_use_inventory'))->toBeTrue()
         ->and($subscription->hasFeature('can_export_reports'))->toBeTrue();
@@ -94,8 +94,8 @@ test('canCreateProduct returns false when cafe has reached the product limit', f
     expect($service->canCreateProduct($cafe))->toBeFalse();
 });
 
-test('canCreateProduct returns true for unlimited pro plan regardless of product count', function () {
-    $subscription = Subscription::factory()->pro()->create(); // unlimited
+test('canCreateProduct returns true for unlimited premium plan regardless of product count', function () {
+    $subscription = Subscription::factory()->premium()->create(); // unlimited
     $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
 
     $category = Category::factory()->create(['cafe_id' => $cafe->id]);
@@ -107,7 +107,7 @@ test('canCreateProduct returns true for unlimited pro plan regardless of product
 });
 
 test('remainingProducts returns null for unlimited plans', function () {
-    $subscription = Subscription::factory()->pro()->create();
+    $subscription = Subscription::factory()->premium()->create();
     $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
 
     expect(app(SubscriptionService::class)->remainingProducts($cafe))->toBeNull();
@@ -134,8 +134,8 @@ test('canUseInventory returns false for free plan', function () {
     expect(app(SubscriptionService::class)->canUseInventory($cafe))->toBeFalse();
 });
 
-test('canUseInventory returns true for pro plan', function () {
-    $subscription = Subscription::factory()->pro()->create();
+test('canUseInventory returns true for medium plan', function () {
+    $subscription = Subscription::factory()->medium()->create();
     $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
 
     expect(app(SubscriptionService::class)->canUseInventory($cafe))->toBeTrue();
@@ -148,8 +148,8 @@ test('canUseDiscounts returns false for free plan', function () {
     expect(app(SubscriptionService::class)->canUseDiscounts($cafe))->toBeFalse();
 });
 
-test('canUseDiscounts returns true for pro plan', function () {
-    $subscription = Subscription::factory()->pro()->create();
+test('canUseDiscounts returns true for medium plan', function () {
+    $subscription = Subscription::factory()->medium()->create();
     $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
 
     expect(app(SubscriptionService::class)->canUseDiscounts($cafe))->toBeTrue();
@@ -159,8 +159,8 @@ test('canUseDiscounts returns true for pro plan', function () {
 // SubscriptionPlan enum
 // ---------------------------------------------------------------------------
 
-test('pro plan has all features enabled', function () {
-    $limits = SubscriptionPlan::Pro->defaultLimits();
+test('premium plan has all features enabled', function () {
+    $limits = SubscriptionPlan::Premium->defaultLimits();
 
     expect($limits['max_products'])->toBeNull()
         ->and($limits['can_export_reports'])->toBeTrue()
@@ -204,19 +204,17 @@ test('effectiveLimits preserves plan boolean false when not overridden', functio
 // ---------------------------------------------------------------------------
 
 test('canCreateCategory returns false when limit reached', function () {
-    $subscription = Subscription::factory()->free()->create(); // max 3 categories
+    $subscription = Subscription::factory()->free()->create(); // max 1 category
     $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
 
-    Category::factory()->count(3)->create(['cafe_id' => $cafe->id]);
+    Category::factory()->count(1)->create(['cafe_id' => $cafe->id]);
 
     expect(app(SubscriptionService::class)->canCreateCategory($cafe))->toBeFalse();
 });
 
 test('canCreateCategory returns true when under limit', function () {
-    $subscription = Subscription::factory()->free()->create(); // max 3 categories
+    $subscription = Subscription::factory()->free()->create(); // max 1 category
     $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
-
-    Category::factory()->count(2)->create(['cafe_id' => $cafe->id]);
 
     expect(app(SubscriptionService::class)->canCreateCategory($cafe))->toBeTrue();
 });
@@ -234,8 +232,8 @@ test('canAddPaymentMethod returns false when limit reached', function () {
     expect(app(SubscriptionService::class)->canAddPaymentMethod($cafe))->toBeFalse();
 });
 
-test('canAddPaymentMethod returns true when unlimited on pro plan', function () {
-    $subscription = Subscription::factory()->pro()->create();
+test('canAddPaymentMethod returns true when unlimited on premium plan', function () {
+    $subscription = Subscription::factory()->premium()->create();
     $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
 
     PaymentMethod::factory()->count(50)->create(['cafe_id' => $cafe->id]);
@@ -257,11 +255,24 @@ test('canAddStaff counts cafe users with manager or cashier role', function () {
     expect(app(SubscriptionService::class)->canAddStaff($cafe))->toBeFalse();
 });
 
-test('canAddStaff returns true when under the staff limit on pro plan', function () {
-    $subscription = Subscription::factory()->pro()->create(); // unlimited staff
+test('canAddStaff returns true when under the staff limit on premium plan', function () {
+    $subscription = Subscription::factory()->premium()->create(); // unlimited staff
     $cafe = Cafe::factory()->create(['subscription_id' => $subscription->id]);
 
     User::factory()->count(10)->create(['cafe_id' => $cafe->id, 'role' => 'manager']);
 
     expect(app(SubscriptionService::class)->canAddStaff($cafe))->toBeTrue();
+});
+
+test('medium plan has all features enabled with limits', function () {
+    $limits = SubscriptionPlan::Medium->defaultLimits();
+
+    expect($limits['max_products'])->toBe(20)
+        ->and($limits['max_categories'])->toBe(7)
+        ->and($limits['max_staff'])->toBe(8)
+        ->and($limits['max_payment_methods'])->toBe(3)
+        ->and($limits['can_export_reports'])->toBeTrue()
+        ->and($limits['can_use_inventory'])->toBeTrue()
+        ->and($limits['can_use_variants'])->toBeTrue()
+        ->and($limits['can_use_discounts'])->toBeTrue();
 });

@@ -18,6 +18,10 @@ test('halaman POS cashier hanya memuat produk cafe miliknya', function (): void 
 
     $cafeA = Cafe::query()->create([
         'name' => 'Cafe A',
+        'address' => 'Jl. Merdeka No. 10',
+        'city' => 'Bandung',
+        'province' => 'Jawa Barat',
+        'logo_url' => 'cafes/cafe-a.png',
         'created_by' => $admin->id,
     ]);
 
@@ -67,6 +71,10 @@ test('halaman POS cashier hanya memuat produk cafe miliknya', function (): void 
 
     expect($products)->toHaveCount(1)
         ->and($products[0]['name'])->toBe('Espresso A')
-        ->and($products[0]['cafe_id'])->toBe($cafeA->id);
+        ->and($products[0]['cafe_id'])->toBe($cafeA->id)
+        ->and($component->instance()->cafeLogo)->toBe('cafes/cafe-a.png')
+        ->and($component->instance()->cafeAddress)->toBe('Jl. Merdeka No. 10')
+        ->and($component->instance()->cafeCity)->toBe('Bandung')
+        ->and($component->instance()->cafeProvince)->toBe('Jawa Barat');
 }
 );

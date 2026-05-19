@@ -5,7 +5,6 @@ use App\Models\Cafe;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
 use App\Models\User;
-use App\Services\MidtransService;
 use App\Services\SubscriptionService;
 
 // ---------------------------------------------------------------------------
@@ -14,13 +13,13 @@ use App\Services\SubscriptionService;
 
 test('subscription payment can be created', function () {
     $cafe = Cafe::factory()->create();
-    $subscription = Subscription::factory()->pro()->create();
+    $subscription = Subscription::factory()->premium()->create();
 
     $payment = SubscriptionPayment::create([
         'cafe_id' => $cafe->id,
         'subscription_id' => $subscription->id,
         'order_id' => 'SUB-TEST-123',
-        'amount' => 150000,
+        'amount' => 200000,
         'status' => 'pending',
     ]);
 
@@ -32,13 +31,13 @@ test('subscription payment can be created', function () {
 
 test('subscription payment status helpers work correctly', function () {
     $cafe = Cafe::factory()->create();
-    $subscription = Subscription::factory()->pro()->create();
+    $subscription = Subscription::factory()->premium()->create();
 
     $pending = SubscriptionPayment::create([
         'cafe_id' => $cafe->id,
         'subscription_id' => $subscription->id,
         'order_id' => 'SUB-PENDING-1',
-        'amount' => 150000,
+        'amount' => 200000,
         'status' => 'pending',
     ]);
 
@@ -46,7 +45,7 @@ test('subscription payment status helpers work correctly', function () {
         'cafe_id' => $cafe->id,
         'subscription_id' => $subscription->id,
         'order_id' => 'SUB-SUCCESS-1',
-        'amount' => 150000,
+        'amount' => 200000,
         'status' => 'success',
     ]);
 
@@ -54,7 +53,7 @@ test('subscription payment status helpers work correctly', function () {
         'cafe_id' => $cafe->id,
         'subscription_id' => $subscription->id,
         'order_id' => 'SUB-FAILED-1',
-        'amount' => 150000,
+        'amount' => 200000,
         'status' => 'failed',
     ]);
 
@@ -69,25 +68,25 @@ test('subscription payment status helpers work correctly', function () {
 
 test('activate subscription updates cafe subscription_id', function () {
     $cafe = Cafe::factory()->create();
-    $proSubscription = Subscription::factory()->pro()->create();
+    $premiumSubscription = Subscription::factory()->premium()->create();
 
     $service = app(SubscriptionService::class);
-    $service->activateSubscription($cafe, $proSubscription, 'trx-123');
+    $service->activateSubscription($cafe, $premiumSubscription, 'trx-123');
 
     $cafe->refresh();
 
-    expect($cafe->subscription_id)->toBe($proSubscription->id);
+    expect($cafe->subscription_id)->toBe($premiumSubscription->id);
 });
 
 // ---------------------------------------------------------------------------
-// Subscription plan enum – only Free and Pro
+// Subscription plan enum – Free, Medium, Premium
 // ---------------------------------------------------------------------------
 
-test('subscription plan enum has only free and pro cases', function () {
+test('subscription plan enum has free, medium, premium cases', function () {
     $cases = SubscriptionPlan::cases();
 
-    expect($cases)->toHaveCount(2)
-        ->and(collect($cases)->pluck('value')->toArray())->toContain('free', 'pro');
+    expect($cases)->toHaveCount(3)
+        ->and(collect($cases)->pluck('value')->toArray())->toContain('free', 'medium', 'premium');
 });
 
 test('free plan has correct default values', function () {
@@ -99,27 +98,49 @@ test('free plan has correct default values', function () {
         ->and($plan->getColor())->toBe('gray');
 });
 
-test('pro plan has correct default values', function () {
-    $plan = SubscriptionPlan::Pro;
+test('medium plan has correct default values', function () {
+    $plan = SubscriptionPlan::Medium;
 
     expect($plan->price())->toBe(150000)
         ->and($plan->durationMonths())->toBe(1)
-        ->and($plan->getLabel())->toBe('Pro')
-        ->and($plan->getColor())->toBe('warning');
+        ->and($plan->getLabel())->toBe('Medium')
+        ->and($plan->getColor())->toBe('primary');
+});
+
+test('premium plan has correct default values', function () {
+    $plan = SubscriptionPlan::Premium;
+
+    expect($plan->price())->toBe(200000)
+        ->and($plan->durationMonths())->toBe(1)
+        ->and($plan->getLabel())->toBe('Premium')
+        ->and($plan->getColor())->toBe('primary');
 });
 
 test('free plan marketing features are correct', function () {
     $features = SubscriptionPlan::Free->marketingFeatures();
 
     expect($features)->toContain('10 Produk')
-        ->and($features)->toContain('3 Kategori')
+        ->and($features)->toContain('1 Kategori')
         ->and($features)->toContain('1 Staff')
         ->and($features)->toContain('2 Metode Pembayaran')
         ->and($features)->toContain('Laporan Dasar');
 });
 
-test('pro plan marketing features include all premium features', function () {
-    $features = SubscriptionPlan::Pro->marketingFeatures();
+test('medium plan marketing features include core premium features', function () {
+    $features = SubscriptionPlan::Medium->marketingFeatures();
+
+    expect($features)->toContain('20 Produk')
+        ->and($features)->toContain('7 Kategori')
+        ->and($features)->toContain('8 Staff')
+        ->and($features)->toContain('3 Metode Pembayaran')
+        ->and($features)->toContain('Ekspor Laporan')
+        ->and($features)->toContain('Manajemen Inventori')
+        ->and($features)->toContain('Varian Produk')
+        ->and($features)->toContain('Diskon Produk');
+});
+
+test('premium plan marketing features include all premium features', function () {
+    $features = SubscriptionPlan::Premium->marketingFeatures();
 
     expect($features)->toContain('Produk Tidak Terbatas')
         ->and($features)->toContain('Kategori Tidak Terbatas')
@@ -161,7 +182,7 @@ test('midtrans notification endpoint is accessible without auth', function () {
     $response = $this->postJson(route('subscription.notification'), [
         'order_id' => 'SUB-TEST-123',
         'status_code' => '200',
-        'gross_amount' => '150000.00',
+        'gross_amount' => '200000.00',
         'signature_key' => 'invalid-signature',
     ]);
 

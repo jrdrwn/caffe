@@ -50,8 +50,7 @@ class CafeManagerInfolist
                             ->badge()
                             ->color(fn (?string $state): string => match (strtolower((string) $state)) {
                                 'free' => 'gray',
-                                'plus' => 'warning',
-                                'pro' => 'success',
+                                'medium', 'premium' => 'primary',
                                 default => 'gray',
                             })
                             ->placeholder('Belum diatur'),

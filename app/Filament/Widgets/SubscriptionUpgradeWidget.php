@@ -174,10 +174,10 @@ class SubscriptionUpgradeWidget extends Widget implements HasActions, HasSchemas
         $stats[] = $this->usageStat('Staff', $cafe->users()->where('role', 'cashier')->count(), $subscription?->getLimit('max_staff'), 'heroicon-m-users');
         $stats[] = $this->usageStat('Metode Pembayaran', $cafe->paymentMethods()->count(), $subscription?->getLimit('max_payment_methods'), 'heroicon-m-banknotes');
 
-        $stats[] = $this->featureStat('Inventori', $service->canUseInventory($cafe), 'heroicon-m-archive-box', 'Pro');
-        $stats[] = $this->featureStat('Varian Produk', $service->canUseVariants($cafe), 'heroicon-m-adjustments-horizontal', 'Pro');
-        $stats[] = $this->featureStat('Diskon Produk', $service->canUseDiscounts($cafe), 'heroicon-m-receipt-percent', 'Pro');
-        $stats[] = $this->featureStat('Ekspor Laporan', $service->canExportReports($cafe), 'heroicon-m-document-arrow-down', 'Pro');
+        $stats[] = $this->featureStat('Inventori', $service->canUseInventory($cafe), 'heroicon-m-archive-box', 'Medium');
+        $stats[] = $this->featureStat('Varian Produk', $service->canUseVariants($cafe), 'heroicon-m-adjustments-horizontal', 'Medium');
+        $stats[] = $this->featureStat('Diskon Produk', $service->canUseDiscounts($cafe), 'heroicon-m-receipt-percent', 'Medium');
+        $stats[] = $this->featureStat('Ekspor Laporan', $service->canExportReports($cafe), 'heroicon-m-document-arrow-down', 'Medium');
 
         return $stats;
     }

@@ -25,12 +25,6 @@ class ViewCafe extends ViewRecord
                 ->color('gray')
                 ->visible(fn (): bool => Auth::user()?->role === 'manager')
                 ->form([
-                    TextInput::make('current_password')
-                        ->label('Password Saat Ini')
-                        ->password()
-                        ->revealable()
-                        ->required()
-                        ->currentPassword(),
                     TextInput::make('new_password')
                         ->label('Password Baru')
                         ->password()

@@ -34,13 +34,19 @@
                 <div class="text-center p-7 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950">
                     <div class="mb-2">
                         @if($cafeLogo)
-                            <img src="{{ asset('storage/' . $cafeLogo) }}" alt="Logo Cafe" class="max-h-12 max-w-full mx-auto">
+                            <img src="{{ asset('storage/' . $cafeLogo) }}" alt="Logo Cafe" class="max-h-14 max-w-full mx-auto rounded-xl">
                         @else
-                            <img src="{{ asset('/default-logo/light-mode.png') }}" class="logo-light max-h-12 max-w-full mx-auto" alt="Logo Default">
-                            <img src="{{ asset('/default-logo/dark-mode.png') }}" class="logo-dark max-h-12 max-w-full mx-auto hidden" alt="Logo Default">
+                            <img src="{{ asset('/default-logo/light-mode.png') }}" class="logo-light max-h-14 max-w-full mx-auto rounded-xl" alt="Logo Default">
+                            <img src="{{ asset('/default-logo/dark-mode.png') }}" class="logo-dark max-h-14 max-w-full mx-auto hidden rounded-xl" alt="Logo Default">
                         @endif
                     </div>
                     <h2 class="m-0 text-lg font-bold tracking-widest text-gray-700 dark:text-gray-200 uppercase">{{ $cafeName }}</h2>
+                    @php
+                        $locationParts = array_filter([$cafeAddress, $cafeCity, $cafeProvince]);
+                    @endphp
+                    @if(!empty($locationParts))
+                        <p class="mt-1 text-[0.7rem] text-gray-400">{{ implode(', ', $locationParts) }}</p>
+                    @endif
                     <p id="receipt-trx-num" class="mt-1 text-xs text-gray-400 font-mono">TRX...</p>
                 </div>
 
@@ -172,7 +178,11 @@
                 <div class="fi-section flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-900 p-6 rounded-3xl shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                     <div class="flex items-center gap-4">
                         <div class="p-3 bg-primary-600 text-white rounded-2xl shadow-lg shadow-primary-600/20">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+                            @if($cafeLogo)
+                                <img src="{{ asset('storage/' . $cafeLogo) }}" alt="Logo Cafe" class="h-10 w-10 rounded-lg object-contain">
+                            @else
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+                            @endif
                         </div>
                         <div>
                             <h3 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Menu Produk</h3>
@@ -1388,4 +1398,3 @@
         })();
     </script>
 </x-filament-panels::page>
-

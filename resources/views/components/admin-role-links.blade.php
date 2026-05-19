@@ -22,7 +22,7 @@
         </p>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div class="grid {{ count($links) === 1 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2' }} gap-3">
         @foreach ($links as $link)
             <a
                 href="{{ $link['url'] }}"

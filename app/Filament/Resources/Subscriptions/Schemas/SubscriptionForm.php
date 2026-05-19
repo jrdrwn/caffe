@@ -25,7 +25,7 @@ class SubscriptionForm
                         TextInput::make('name')
                             ->label('Nama Paket')
                             ->required()
-                            ->placeholder('Contoh: Pro Bulanan')
+                            ->placeholder('Contoh: Premium Bulanan')
                             ->maxLength(255),
                         Select::make('plan')
                             ->label('Tipe Paket')
