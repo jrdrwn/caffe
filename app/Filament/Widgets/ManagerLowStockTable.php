@@ -8,6 +8,7 @@ use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Filament\Tables\Enums\PaginationMode;
 
 class ManagerLowStockTable extends TableWidget
 {
@@ -31,6 +32,7 @@ class ManagerLowStockTable extends TableWidget
                     ->where('is_active', true)
                     ->where('stock', '<=', 10)
                     ->orderBy('stock', 'asc')
+                    ->limit(5)
             )
             ->columns([
                 TextColumn::make('name')
@@ -48,6 +50,6 @@ class ManagerLowStockTable extends TableWidget
             ->emptyStateIcon('heroicon-o-check-circle')
             ->striped()
             ->searchable(false)
-            ->defaultPaginationPageOption(1);
+            ->paginated(false);
     }
 }

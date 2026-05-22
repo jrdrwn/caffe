@@ -21,7 +21,7 @@ class CafeForm
 
         return $schema
             ->components([
-
+                Grid::make(1)->components([
                 Section::make('Identitas Cafe')
                     ->description('Data dasar cafe yang digunakan untuk dashboard, transaksi, dan laporan.')
                     ->columns(2)
@@ -50,8 +50,42 @@ class CafeForm
                             ->visible($isSuperAdmin)
                             ->helperText('Cafe nonaktif akan disembunyikan dari pemilihan data utama.'),
                     ]),
-
-                Section::make('Pengaturan Transaksi')
+                Section::make('Lokasi & Brand')
+                    ->description('Tambahkan alamat dan aset visual agar tampilan lebih profesional.')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('city')
+                            ->label('Kota')
+                            ->placeholder('Bandung')
+                            ->maxLength(255),
+                        TextInput::make('province')
+                            ->label('Provinsi')
+                            ->placeholder('Jawa Barat')
+                            ->maxLength(255),
+                        FileUpload::make('logo_url')
+                            ->label('Logo')
+                            ->disk('public')
+                            ->directory('cafe-logos')
+                            ->visibility('public')
+                            ->image()
+                            ->imageEditor()
+                            ->imageAspectRatio('1:1')
+                            ->automaticallyOpenImageEditorForAspectRatio()
+                            ->openable()
+                            ->maxSize(2048) // 1MB
+                            ->columnSpanFull(),
+                        Textarea::make('address')
+                            ->label('Alamat')
+                            ->rows(4)
+                            ->columnSpanFull(),
+                        Textarea::make('description')
+                            ->label('Deskripsi')
+                            ->rows(4)
+                            ->columnSpanFull(),
+                    ]),
+            ]),
+            Grid::make(1)->components([
+                    Section::make('Pengaturan Transaksi')
                     ->description('Tax dan service charge yang diterapkan pada setiap transaksi di cafe ini.')
                     ->columns(2)
                     ->schema([
@@ -122,40 +156,7 @@ class CafeForm
                             ])
                             ->visible(fn ($get) => $get('qris_type') === 'midtrans'),
                     ]),
-
-                Section::make('Lokasi & Brand')
-                    ->description('Tambahkan alamat dan aset visual agar tampilan lebih profesional.')
-                    ->columns(2)
-                    ->schema([
-                        TextInput::make('city')
-                            ->label('Kota')
-                            ->placeholder('Bandung')
-                            ->maxLength(255),
-                        TextInput::make('province')
-                            ->label('Provinsi')
-                            ->placeholder('Jawa Barat')
-                            ->maxLength(255),
-                        FileUpload::make('logo_url')
-                            ->label('Logo')
-                            ->disk('public')
-                            ->directory('cafe-logos')
-                            ->visibility('public')
-                            ->image()
-                            ->imageEditor()
-                            ->imageAspectRatio('1:1')
-                            ->automaticallyOpenImageEditorForAspectRatio()
-                            ->openable()
-                            ->maxSize(2048) // 1MB
-                            ->columnSpanFull(),
-                        Textarea::make('address')
-                            ->label('Alamat')
-                            ->rows(4)
-                            ->columnSpanFull(),
-                        Textarea::make('description')
-                            ->label('Deskripsi')
-                            ->rows(4)
-                            ->columnSpanFull(),
-                    ]),
+            ])
             ]);
     }
 }

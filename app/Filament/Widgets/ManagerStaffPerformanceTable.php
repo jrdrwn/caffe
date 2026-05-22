@@ -30,6 +30,7 @@ class ManagerStaffPerformanceTable extends TableWidget
                     ->where('cafe_id', Auth::user()?->cafe_id)
                     ->where('role', 'cashier')
                     ->where('is_active', true)
+                    ->limit(5)
                     ->withCount([
                         'transactions as today_count' => fn (Builder $q) => $q
                             ->whereDate('created_at', today()),
@@ -58,6 +59,6 @@ class ManagerStaffPerformanceTable extends TableWidget
             ->emptyStateHeading('Belum ada kasir aktif')
             ->striped()
             ->searchable(false)
-            ->defaultPaginationPageOption(5);
+            ->paginated(false);
     }
 }
