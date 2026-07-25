@@ -14,6 +14,8 @@ class Subscription extends Model
 
     protected $casts = [
         'plan' => SubscriptionPlan::class,
+        'duration_months' => 'integer',
+        'price' => 'integer',
         'features' => 'array',
         'limits' => 'array',
         'is_active' => 'boolean',

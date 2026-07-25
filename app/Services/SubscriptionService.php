@@ -86,7 +86,7 @@ class SubscriptionService
             return true;
         }
 
-        return $cafe->users()->where('role', 'cashier')->count() < $max;
+        return $cafe->users()->whereIn('role', ['manager', 'cashier'])->count() < $max;
     }
 
     /**
@@ -100,7 +100,7 @@ class SubscriptionService
             return null;
         }
 
-        return max(0, $max - $cafe->users()->where('role', 'cashier')->count());
+        return max(0, $max - $cafe->users()->whereIn('role', ['manager', 'cashier'])->count());
     }
 
     /**
