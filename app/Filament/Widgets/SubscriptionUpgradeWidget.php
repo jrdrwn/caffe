@@ -6,7 +6,7 @@ use App\Enums\SubscriptionPlan;
 use App\Models\Cafe;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
-use App\Services\MidtransService;
+use App\Services\DokuService;
 use App\Services\SubscriptionService;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
@@ -276,9 +276,9 @@ class SubscriptionUpgradeWidget extends Widget implements HasActions, HasSchemas
 
                 try {
                     $this->snapToken = app(SubscriptionService::class)->initiateUpgrade($cafe, $subscription);
-                    $midtrans = app(MidtransService::class);
-                    $this->clientKey = $midtrans->clientKey();
-                    $this->snapUrl = $midtrans->snapUrl();
+                    $doku = app(DokuService::class);
+                    $this->clientKey = $doku->clientKey();
+                    $this->snapUrl = $doku->snapUrl();
                 } catch (\Throwable $e) {
                     Notification::make()
                         ->title('Gagal memulai pembayaran')

@@ -45,14 +45,14 @@ class CafeInfolist
                         ->schema([
                             TextEntry::make('tax_percentage')
                                 ->label('Pajak')
-                                ->formatStateUsing(fn(int $state): string => $state > 0 ? "{$state}%" : 'Tidak ada pajak')
+                                ->formatStateUsing(fn (int $state): string => $state > 0 ? "{$state}%" : 'Tidak ada pajak')
                                 ->badge()
-                                ->color(fn(int $state): string => $state > 0 ? 'warning' : 'gray'),
+                                ->color(fn (int $state): string => $state > 0 ? 'warning' : 'gray'),
                             TextEntry::make('service_charge_percentage')
                                 ->label('Service Charge')
-                                ->formatStateUsing(fn(int $state): string => $state > 0 ? "{$state}%" : 'Tidak ada service charge')
+                                ->formatStateUsing(fn (int $state): string => $state > 0 ? "{$state}%" : 'Tidak ada service charge')
                                 ->badge()
-                                ->color(fn(int $state): string => $state > 0 ? 'info' : 'gray'),
+                                ->color(fn (int $state): string => $state > 0 ? 'info' : 'gray'),
                         ]),
                 ]),
                 Grid::make(1)->components([
@@ -71,34 +71,26 @@ class CafeInfolist
                         ->schema([
                             TextEntry::make('qris_type')
                                 ->label('Tipe QRIS')
-                                ->formatStateUsing(fn(string $state): string => match ($state) {
+                                ->formatStateUsing(fn (string $state): string => match ($state) {
                                     'manual' => 'Manual (Scan Statis)',
-                                    'midtrans' => 'Otomatis (Midtrans)',
+                                    'doku' => 'Otomatis (Doku)',
                                     default => $state,
                                 })
                                 ->badge()
-                                ->color(fn(string $state): string => $state === 'midtrans' ? 'success' : 'gray'),
+                                ->color(fn (string $state): string => $state === 'doku' ? 'success' : 'gray'),
 
-                            TextEntry::make('midtrans_merchant_id')
-                                ->label('Merchant ID')
+                            TextEntry::make('doku_client_id')
+                                ->label('Doku Client ID')
                                 ->placeholder('Tidak diset')
-                                ->visible(fn($record) => $record->qris_type === 'midtrans'),
+                                ->visible(fn ($record) => $record->qris_type === 'doku'),
 
-                            TextEntry::make('midtrans_client_key')
-                                ->label('Client Key')
-                                ->placeholder('Tidak diset')
-                                ->visible(fn($record) => $record->qris_type === 'midtrans'),
-
-                            TextEntry::make('midtrans_is_production')
-                                ->label('Mode Sistem')
-                                ->formatStateUsing(fn(): string => config('midtrans.is_production') ? 'Produksi (Live)' : 'Sandbox (Testing)')
-                                ->helperText('Otomatis mengikuti environment sistem.')
+                            TextEntry::make('doku_is_production')
+                                ->label('Mode Doku')
+                                ->formatStateUsing(fn (bool $state): string => $state ? 'Produksi (Live)' : 'Sandbox (Testing)')
                                 ->badge()
-                                ->color(fn(): string => config('midtrans.is_production') ? 'danger' : 'info')
-                                ->visible(fn($record) => $record->qris_type === 'midtrans'),
+                                ->color(fn (bool $state): string => $state ? 'danger' : 'info')
+                                ->visible(fn ($record) => $record->qris_type === 'doku'),
                         ]),
-
-
 
                     Section::make('Langganan')
                         ->description('Paket aktif cafe dan masa berlakunya.')
@@ -108,7 +100,7 @@ class CafeInfolist
                             TextEntry::make('subscription.name')
                                 ->label('Paket')
                                 ->badge()
-                                ->color(fn(?string $state): string => match (strtolower((string) $state)) {
+                                ->color(fn (?string $state): string => match (strtolower((string) $state)) {
                                     'free' => 'gray',
                                     'medium', 'premium' => 'primary',
                                     default => 'gray',
@@ -119,12 +111,11 @@ class CafeInfolist
                                 ->placeholder('Belum diatur'),
                             TextEntry::make('subscription.price')
                                 ->label('Harga')
-                                ->formatStateUsing(fn($state): string => 'Rp ' . number_format((int) $state, 0, ',', '.'))
+                                ->formatStateUsing(fn ($state): string => 'Rp '.number_format((int) $state, 0, ',', '.'))
                                 ->placeholder('Belum diatur'),
                         ]),
 
                 ]),
-
 
             ]);
     }

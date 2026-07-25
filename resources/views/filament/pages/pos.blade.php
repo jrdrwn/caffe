@@ -1,6 +1,6 @@
 <x-filament-panels::page>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script src="{{ app(\App\Services\MidtransService::class)->snapUrl() }}" data-client-key="{{ $midtransClientKey ?? app(\App\Services\MidtransService::class)->clientKey() }}"></script>
+    <script src="{{ app(\App\Services\DokuService::class)->snapUrl() }}" data-client-key="{{ $dokuClientId ?? app(\App\Services\DokuService::class)->clientKey() }}"></script>
 
     <div id="pos-app" class="min-h-screen bg-gray-50 dark:bg-gray-950 p-4 md:p-6 lg:p-8">
         <!-- Toast -->
@@ -1225,10 +1225,10 @@
                         document.getElementById('receipt-discount-amt').textContent = discountAmt > 0 ? '-' + formatCurrency(discountAmt) : formatCurrency(0);
                         document.getElementById('receipt-total').textContent = formatCurrency(total);
 
-                        // Dynamic label: QRIS (Midtrans) or QRIS (Manual)
+                        // Dynamic label: QRIS (Doku) or QRIS (Manual)
                         let methodLabel = selectedPaymentMethod.toUpperCase();
                         if (selectedPaymentMethod === 'qris') {
-                            methodLabel += ' (' + ('{{ $qrisType }}' === 'midtrans' ? 'MIDTRANS' : 'MANUAL') + ')';
+                            methodLabel += ' (' + ('{{ $qrisType }}' === 'doku' ? 'DOKU' : 'MANUAL') + ')';
                         }
                         document.getElementById('receipt-payment-method').textContent = methodLabel;
 
@@ -1243,15 +1243,21 @@
                         // Default: Show actions
                         receiptActions.style.display = 'grid';
 
-                        if (selectedPaymentMethod === 'qris' && data.qris_data && data.qris_data.qr_url) {
-                            addLog('QRIS Midtrans aktif. Menyembunyikan tombol struk sementara.');
+                        if (selectedPaymentMethod === 'qris' && data.qris_data && data.qris_data.checkout_url) {
+                            addLog('QRIS Doku aktif. Membuka modal pembayaran Jokul.');
 
                             // Hide Print/New buttons while pending
                             receiptActions.style.display = 'none';
 
-                            qrisImg.src = data.qris_data.qr_url;
-                            qrisImg.style.display = 'block';
-                            qrisImg.style.margin = '15px auto';
+                            // Trigger Doku Jokul Checkout JS Modal
+                            if (typeof loadJokulCheckout === 'function') {
+                                loadJokulCheckout(data.qris_data.checkout_url);
+                            } else {
+                                console.error('loadJokulCheckout is not loaded. Falling back to redirect.');
+                                window.open(data.qris_data.checkout_url, '_blank');
+                            }
+
+                            qrisImg.style.display = 'none';
                             qrisSection.style.display = 'block';
 
                             const p = qrisSection.querySelector('p');
@@ -1260,7 +1266,7 @@
                                 p.style.textAlign = 'center';
                                 p.style.fontWeight = 'bold';
                                 p.style.marginTop = '10px';
-                                p.innerHTML = `Menunggu Pembayaran...<br><span style="font-size:1.4rem; color:#ef4444;" id="countdown-timer">15:00</span>`;
+                                p.innerHTML = `Modal Pembayaran Aktif...<br><span style="font-size:1.4rem; color:#ef4444;" id="countdown-timer">15:00</span>`;
                                 p.style.color = '#f59e0b';
                                 p.id = 'payment-status-text';
                             }

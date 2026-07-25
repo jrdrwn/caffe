@@ -175,15 +175,20 @@ test('snap token endpoint requires manager role', function () {
 });
 
 // ---------------------------------------------------------------------------
-// Midtrans notification webhook
+// Doku notification webhook
 // ---------------------------------------------------------------------------
 
-test('midtrans notification endpoint is accessible without auth', function () {
+test('doku notification endpoint is accessible without auth', function () {
     $response = $this->postJson(route('subscription.notification'), [
-        'order_id' => 'SUB-TEST-123',
-        'status_code' => '200',
-        'gross_amount' => '200000.00',
-        'signature_key' => 'invalid-signature',
+        'order' => [
+            'invoice_number' => 'SUB-TEST-123',
+            'amount' => '200000.00',
+        ],
+        'transaction' => [
+            'status' => 'SUCCESS',
+        ],
+    ], [
+        'Signature' => 'invalid-signature',
     ]);
 
     // Should return 400 because signature is invalid, not 401

@@ -14,6 +14,9 @@ Route::get('/cashier/pos/check-status/{transactionNumber}', [PosController::clas
     ->name('pos.check-status')
     ->middleware(['auth']);
 
+Route::get('/cashier/pos/finish', [PosController::class, 'finish'])
+    ->name('pos.finish');
+
 Route::post('/cashier/pos/cancel/{transactionNumber}', [PosController::class, 'cancelOrder'])
     ->name('pos.cancel')
     ->middleware(['auth']);

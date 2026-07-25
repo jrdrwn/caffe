@@ -150,7 +150,7 @@ class SubscriptionService
     }
 
     // -------------------------------------------------------------------------
-    // Payment Gateway Integration (Midtrans)
+    // Payment Gateway Integration (Doku)
     // -------------------------------------------------------------------------
 
     /**
@@ -158,13 +158,13 @@ class SubscriptionService
      *
      * @param  Cafe  $cafe  The cafe requesting the upgrade.
      * @param  Subscription  $subscription  Target subscription plan to upgrade to.
-     * @return string Snap token for Midtrans payment.
+     * @return string Checkout URL for Doku payment.
      */
     public function initiateUpgrade(Cafe $cafe, Subscription $subscription): string
     {
-        $midtrans = app(MidtransService::class);
+        $doku = app(DokuService::class);
 
-        return $midtrans->createSnapToken($cafe, $subscription);
+        return $doku->createSnapToken($cafe, $subscription);
     }
 
     /**
@@ -187,7 +187,9 @@ class SubscriptionService
     public function enforceLimits(Cafe $cafe): void
     {
         $subscription = $this->subscriptionFor($cafe);
-        if (!$subscription) return;
+        if (! $subscription) {
+            return;
+        }
 
         // 1. Payment Methods
         $maxPaymentMethods = $subscription->getLimit('max_payment_methods');

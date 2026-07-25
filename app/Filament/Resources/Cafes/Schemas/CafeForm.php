@@ -22,141 +22,140 @@ class CafeForm
         return $schema
             ->components([
                 Grid::make(1)->components([
-                Section::make('Identitas Cafe')
-                    ->description('Data dasar cafe yang digunakan untuk dashboard, transaksi, dan laporan.')
-                    ->columns(2)
-                    ->schema([
-                        TextInput::make('name')
-                            ->label('Nama Cafe')
-                            ->required()
-                            ->placeholder('Contoh: Caffe Maju')
-                            ->maxLength(255),
-                        TextInput::make('owner_name')
-                            ->label('Nama Pemilik')
-                            ->placeholder('Nama pemilik cafe')
-                            ->maxLength(255),
-                        TextInput::make('email')
-                            ->label('Email')
-                            ->email()
-                            ->placeholder('owner@domain.com')
-                            ->maxLength(255),
-                        TextInput::make('phone')
-                            ->label('Telepon')
-                            ->placeholder('08xxxxxxxxxx')
-                            ->tel()
-                            ->maxLength(255),
-                        Toggle::make('is_active')
-                            ->label('Aktif')
-                            ->visible($isSuperAdmin)
-                            ->helperText('Cafe nonaktif akan disembunyikan dari pemilihan data utama.'),
-                    ]),
-                Section::make('Lokasi & Brand')
-                    ->description('Tambahkan alamat dan aset visual agar tampilan lebih profesional.')
-                    ->columns(2)
-                    ->schema([
-                        TextInput::make('city')
-                            ->label('Kota')
-                            ->placeholder('Bandung')
-                            ->maxLength(255),
-                        TextInput::make('province')
-                            ->label('Provinsi')
-                            ->placeholder('Jawa Barat')
-                            ->maxLength(255),
-                        FileUpload::make('logo_url')
-                            ->label('Logo')
-                            ->disk('public')
-                            ->directory('cafe-logos')
-                            ->visibility('public')
-                            ->image()
-                            ->imageEditor()
-                            ->imageAspectRatio('1:1')
-                            ->automaticallyOpenImageEditorForAspectRatio()
-                            ->openable()
-                            ->maxSize(2048) // 1MB
-                            ->columnSpanFull(),
-                        Textarea::make('address')
-                            ->label('Alamat')
-                            ->rows(4)
-                            ->columnSpanFull(),
-                        Textarea::make('description')
-                            ->label('Deskripsi')
-                            ->rows(4)
-                            ->columnSpanFull(),
-                    ]),
-            ]),
-            Grid::make(1)->components([
+                    Section::make('Identitas Cafe')
+                        ->description('Data dasar cafe yang digunakan untuk dashboard, transaksi, dan laporan.')
+                        ->columns(2)
+                        ->schema([
+                            TextInput::make('name')
+                                ->label('Nama Cafe')
+                                ->required()
+                                ->placeholder('Contoh: Caffe Maju')
+                                ->maxLength(255),
+                            TextInput::make('owner_name')
+                                ->label('Nama Pemilik')
+                                ->placeholder('Nama pemilik cafe')
+                                ->maxLength(255),
+                            TextInput::make('email')
+                                ->label('Email')
+                                ->email()
+                                ->placeholder('owner@domain.com')
+                                ->maxLength(255),
+                            TextInput::make('phone')
+                                ->label('Telepon')
+                                ->placeholder('08xxxxxxxxxx')
+                                ->tel()
+                                ->maxLength(255),
+                            Toggle::make('is_active')
+                                ->label('Aktif')
+                                ->visible($isSuperAdmin)
+                                ->helperText('Cafe nonaktif akan disembunyikan dari pemilihan data utama.'),
+                        ]),
+                    Section::make('Lokasi & Brand')
+                        ->description('Tambahkan alamat dan aset visual agar tampilan lebih profesional.')
+                        ->columns(2)
+                        ->schema([
+                            TextInput::make('city')
+                                ->label('Kota')
+                                ->placeholder('Bandung')
+                                ->maxLength(255),
+                            TextInput::make('province')
+                                ->label('Provinsi')
+                                ->placeholder('Jawa Barat')
+                                ->maxLength(255),
+                            FileUpload::make('logo_url')
+                                ->label('Logo')
+                                ->disk('public')
+                                ->directory('cafe-logos')
+                                ->visibility('public')
+                                ->image()
+                                ->imageEditor()
+                                ->imageAspectRatio('1:1')
+                                ->automaticallyOpenImageEditorForAspectRatio()
+                                ->openable()
+                                ->maxSize(2048) // 1MB
+                                ->columnSpanFull(),
+                            Textarea::make('address')
+                                ->label('Alamat')
+                                ->rows(4)
+                                ->columnSpanFull(),
+                            Textarea::make('description')
+                                ->label('Deskripsi')
+                                ->rows(4)
+                                ->columnSpanFull(),
+                        ]),
+                ]),
+                Grid::make(1)->components([
                     Section::make('Pengaturan Transaksi')
-                    ->description('Tax dan service charge yang diterapkan pada setiap transaksi di cafe ini.')
-                    ->columns(2)
-                    ->schema([
-                        TextInput::make('tax_percentage')
-                            ->label('Pajak (%)')
-                            ->helperText('Contoh: 11 = PPN 11%. Isi 0 jika tidak ada pajak.')
-                            ->numeric()
-                            ->minValue(0)
-                            ->maxValue(100)
-                            ->suffix('%')
-                            ->default(0)
-                            ->required(),
-                        TextInput::make('service_charge_percentage')
-                            ->label('Service Charge (%)')
-                            ->helperText('Contoh: 5 = biaya layanan 5%. Isi 0 jika tidak ada.')
-                            ->numeric()
-                            ->minValue(0)
-                            ->maxValue(100)
-                            ->suffix('%')
-                            ->default(0)
-                            ->required(),
-                    ]),
+                        ->description('Tax dan service charge yang diterapkan pada setiap transaksi di cafe ini.')
+                        ->columns(2)
+                        ->schema([
+                            TextInput::make('tax_percentage')
+                                ->label('Pajak (%)')
+                                ->helperText('Contoh: 11 = PPN 11%. Isi 0 jika tidak ada pajak.')
+                                ->numeric()
+                                ->minValue(0)
+                                ->maxValue(100)
+                                ->suffix('%')
+                                ->default(0)
+                                ->required(),
+                            TextInput::make('service_charge_percentage')
+                                ->label('Service Charge (%)')
+                                ->helperText('Contoh: 5 = biaya layanan 5%. Isi 0 jika tidak ada.')
+                                ->numeric()
+                                ->minValue(0)
+                                ->maxValue(100)
+                                ->suffix('%')
+                                ->default(0)
+                                ->required(),
+                        ]),
 
-                // Subscription assignment — super admin only
-                Section::make('Langganan')
-                    ->description('Pemilihan paket langganan ada di halaman utama / Dashboard Manager. ')
-                    ->disabled(true)
-                    ->schema([
-                        Select::make('subscription_id')
-                            ->label('Paket Langganan')
-                            ->placeholder('Pilih paket langganan...')
-                            ->options(
-                                Subscription::whereIsActive(true)
-                                    ->orderBy('price', 'asc')
-                                    ->pluck('name', 'id')
-                            )
-                            ->searchable()
-                            ->nullable(),
-                    ]),
-                Section::make('Payment Gateway (QRIS)')
-                    ->description('Konfigurasi bagaimana QRIS diproses.')
-                    ->schema([
-                        Select::make('qris_type')
-                            ->label('Tipe QRIS')
-                            ->options([
-                                'manual' => 'Manual (Scan Statis / Foto)',
-                                'midtrans' => 'Otomatis (Midtrans Dynamic QRIS)',
-                            ])
-                            ->required()
-                            ->live(),
+                    // Subscription assignment — super admin only
+                    Section::make('Langganan')
+                        ->description('Pemilihan paket langganan ada di halaman utama / Dashboard Manager. ')
+                        ->disabled(true)
+                        ->schema([
+                            Select::make('subscription_id')
+                                ->label('Paket Langganan')
+                                ->placeholder('Pilih paket langganan...')
+                                ->options(
+                                    Subscription::whereIsActive(true)
+                                        ->orderBy('price', 'asc')
+                                        ->pluck('name', 'id')
+                                )
+                                ->searchable()
+                                ->nullable(),
+                        ]),
+                    Section::make('Payment Gateway (QRIS)')
+                        ->description('Konfigurasi bagaimana QRIS diproses.')
+                        ->schema([
+                            Select::make('qris_type')
+                                ->label('Tipe QRIS')
+                                ->options([
+                                    'manual' => 'Manual (Scan Statis / Foto)',
+                                    'doku' => 'Otomatis (Doku Dynamic QRIS / Checkout Link)',
+                                ])
+                                ->required()
+                                ->live(),
 
-                        Grid::make(2)
-                            ->schema([
-                                TextInput::make('midtrans_merchant_id')
-                                    ->label('Midtrans Merchant ID')
-                                    ->placeholder('Gxxxxxxxxx')
-                                    ->required(fn ($get) => $get('qris_type') === 'midtrans'),
-                                TextInput::make('midtrans_client_key')
-                                    ->label('Midtrans Client Key')
-                                    ->placeholder('SB-Mid-client-xxxxxxxx')
-                                    ->required(fn ($get) => $get('qris_type') === 'midtrans'),
-                                TextInput::make('midtrans_server_key')
-                                    ->label('Midtrans Server Key')
-                                    ->password()
-                                    ->revealable()
-                                    ->placeholder('SB-Mid-server-xxxxxxxx')
-                                    ->required(fn ($get) => $get('qris_type') === 'midtrans'),
-                            ])
-                            ->visible(fn ($get) => $get('qris_type') === 'midtrans'),
-                    ]),
-            ])
+                            Grid::make(2)
+                                ->schema([
+                                    TextInput::make('doku_client_id')
+                                        ->label('Doku Client ID')
+                                        ->placeholder('MCH-xxxxxxxxxxxx')
+                                        ->required(fn ($get) => $get('qris_type') === 'doku'),
+                                    TextInput::make('doku_secret_key')
+                                        ->label('Doku Secret Key')
+                                        ->password()
+                                        ->revealable()
+                                        ->placeholder('SK-xxxxxxxxxxxx')
+                                        ->required(fn ($get) => $get('qris_type') === 'doku'),
+                                    Toggle::make('doku_is_production')
+                                        ->label('Production Mode')
+                                        ->default(false),
+                                ])
+                                ->visible(fn ($get) => $get('qris_type') === 'doku'),
+                        ]),
+                ]),
             ]);
     }
 }

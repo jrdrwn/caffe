@@ -29,6 +29,9 @@ class Cafe extends Model
         'midtrans_client_key',
         'midtrans_server_key',
         'midtrans_is_production',
+        'doku_client_id',
+        'doku_secret_key',
+        'doku_is_production',
     ];
 
     protected $casts = [
@@ -36,6 +39,7 @@ class Cafe extends Model
         'service_charge_percentage' => 'integer',
         'is_active' => 'boolean',
         'midtrans_is_production' => 'boolean',
+        'doku_is_production' => 'boolean',
     ];
 
     protected static function booted()
