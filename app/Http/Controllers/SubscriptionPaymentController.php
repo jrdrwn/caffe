@@ -49,7 +49,7 @@ class SubscriptionPaymentController extends Controller
         // Security: Prevent downgrade to free plan if they already have an active paid plan (optional business rule)
         // Or at least prevent re-activating the exact same plan if it's still far from expiry
         if ($subscription->price <= 0) {
-            if ($cafe->subscription_id === $subscription->id) {
+            if ((int) $cafe->subscription_id === (int) $subscription->id) {
                 return response()->json(['message' => 'Anda sudah menggunakan paket ini.'], 422);
             }
 

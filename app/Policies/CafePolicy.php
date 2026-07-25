@@ -17,7 +17,7 @@ class CafePolicy
     public function view(User $user, Cafe $cafe): bool
     {
         if ($user->role === 'manager') {
-            return $user->cafe_id === $cafe->id;
+            return (int) $user->cafe_id === (int) $cafe->id;
         }
 
         return false;
@@ -31,7 +31,7 @@ class CafePolicy
     public function update(User $user, Cafe $cafe): bool
     {
         if ($user->role === 'manager') {
-            return $user->cafe_id === $cafe->id;
+            return (int) $user->cafe_id === (int) $cafe->id;
         }
 
         return false;

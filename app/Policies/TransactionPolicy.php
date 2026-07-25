@@ -17,10 +17,10 @@ class TransactionPolicy
     public function view(User $user, Transaction $transaction): bool
     {
         if ($user->role === 'manager') {
-            return $user->cafe_id === $transaction->cafe_id;
+            return (int) $user->cafe_id === (int) $transaction->cafe_id;
         }
         if ($user->role === 'cashier') {
-            return $user->id === $transaction->cashier_id;
+            return (int) $user->id === (int) $transaction->cashier_id;
         }
 
         return false;

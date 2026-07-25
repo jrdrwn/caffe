@@ -17,7 +17,7 @@ class ProductPolicy
     public function view(User $user, Product $product): bool
     {
         if ($user->role === 'manager') {
-            return $user->cafe_id === $product->cafe_id;
+            return (int) $user->cafe_id === (int) $product->cafe_id;
         }
 
         return false;
@@ -31,7 +31,7 @@ class ProductPolicy
     public function update(User $user, Product $product): bool
     {
         if ($user->role === 'manager') {
-            return $user->cafe_id === $product->cafe_id;
+            return (int) $user->cafe_id === (int) $product->cafe_id;
         }
 
         return false;
@@ -40,7 +40,7 @@ class ProductPolicy
     public function delete(User $user, Product $product): bool
     {
         if ($user->role === 'manager') {
-            return $user->cafe_id === $product->cafe_id;
+            return (int) $user->cafe_id === (int) $product->cafe_id;
         }
 
         return false;
