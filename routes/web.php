@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PosController;
+use App\Http\Controllers\PublicController;
 use App\Http\Controllers\SubscriptionPaymentController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
@@ -59,3 +60,10 @@ Route::get('/', function () {
 });
 
 require __DIR__.'/settings.php';
+
+// Public routes (no auth required)
+Route::get('/public', function () {
+    return view('public.landing');
+})->name('public.landing');
+
+Route::get('/doc/{slug}', [PublicController::class, 'showDoc'])->name('public.doc');
