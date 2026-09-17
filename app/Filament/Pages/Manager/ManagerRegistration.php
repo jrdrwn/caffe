@@ -6,10 +6,12 @@ use App\Enums\UserRole;
 use App\Models\Cafe;
 use App\Models\Subscription;
 use Filament\Auth\Pages\Register as BaseRegister;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\HtmlString;
 
 class ManagerRegistration extends BaseRegister
 {
@@ -22,6 +24,7 @@ class ManagerRegistration extends BaseRegister
                 $this->getPhoneFormComponent(),
                 $this->getPasswordFormComponent(),
                 $this->getPasswordConfirmationFormComponent(),
+                $this->getTermsCheckboxComponent(),
             ]);
     }
 
@@ -32,6 +35,22 @@ class ManagerRegistration extends BaseRegister
             ->tel()
             ->required()
             ->maxLength(20);
+    }
+
+    protected function getTermsCheckboxComponent(): Checkbox
+    {
+        return Checkbox::make('agree_terms')
+            ->label(new HtmlString(
+                'Saya telah membaca dan menyetujui '
+                .'<a href="https://cafe.manajemen-pos.my.id/doc/syarat-ketentuan" target="_blank" class="text-primary-600 hover:underline font-medium">Syarat &amp; Ketentuan</a>'
+                .' penggunaan MENCAF, termasuk ketentuan alur penerimaan dana transaksi POS melalui iPaymu.'
+            ))
+            ->required()
+            ->accepted()
+            ->validationMessages([
+                'accepted' => 'Anda harus menyetujui Syarat & Ketentuan untuk melanjutkan pendaftaran.',
+            ])
+            ->dehydrated(false);
     }
 
     /**

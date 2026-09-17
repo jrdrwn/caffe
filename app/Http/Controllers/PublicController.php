@@ -66,6 +66,10 @@ class PublicController extends Controller
 
         $title = $titles[$slug] ?? ucfirst(str_replace('-', ' ', $slug));
 
+        if ($slug === 'syarat-ketentuan') {
+            return view('public.syarat-ketentuan');
+        }
+
         $view = 'public.doc';
         if ($slug === 'faq') {
             $view = 'public.faq';
@@ -120,10 +124,10 @@ class PublicController extends Controller
             $html .= '<div class="mb-3">';
             $html .= '<details class="bg-white/60 rounded-xl border border-gray-200 hover:border-indigo-300 transition-colors group">';
             $html .= '<summary class="flex items-center justify-between p-5 cursor-pointer">';
-            $html .= '<span class="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors pr-4">' . e($pair['q']) . '</span>';
+            $html .= '<span class="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors pr-4">'.e($pair['q']).'</span>';
             $html .= '<svg class="w-5 h-5 text-gray-400 group-hover:text-indigo-500 chevron flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>';
             $html .= '</summary>';
-            $html .= '<div class="answer px-5 pb-5 text-gray-600 leading-relaxed border-t border-gray-100 pt-4">' . e($pair['a']) . '</div>';
+            $html .= '<div class="answer px-5 pb-5 text-gray-600 leading-relaxed border-t border-gray-100 pt-4">'.e($pair['a']).'</div>';
             $html .= '</details>';
             $html .= '</div>';
         }

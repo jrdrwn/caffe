@@ -35,3 +35,11 @@
         @endforeach
     </div>
 </div>
+
+<div class="mt-4 pt-4 border-t border-gray-200 dark:border-white/10 text-center text-xs text-gray-500 dark:text-gray-400 space-y-1">
+    <p>Informasi &amp; ketentuan penggunaan:</p>
+    <div class="flex justify-center gap-4">
+        <a href="https://cafe.manajemen-pos.my.id/important" target="_blank" class="text-primary-600 hover:underline dark:text-primary-400">Informasi Penting</a>
+        <a href="https://cafe.manajemen-pos.my.id/doc/syarat-ketentuan" target="_blank" class="text-primary-600 hover:underline dark:text-primary-400">Syarat &amp; Ketentuan</a>
+    </div>
+</div>
