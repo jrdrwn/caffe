@@ -44,7 +44,7 @@ class Pos extends Page
 
     public array $activePaymentMethods = [];
 
-    public ?string $dokuClientId = null;
+    public ?string $ipaymuVa = null;
 
     public function mount(): void
     {
@@ -72,7 +72,7 @@ class Pos extends Page
                 $this->cafeCity = $cafe->city;
                 $this->cafeProvince = $cafe->province;
                 $this->qrisType = $cafe->qris_type ?? 'manual';
-                $this->dokuClientId = $cafe->doku_client_id;
+                $this->ipaymuVa = $cafe->ipaymu_va;
 
                 // Load active payment methods from the database
                 $this->activePaymentMethods = $cafe->paymentMethods()

@@ -36,12 +36,18 @@ Route::prefix('subscription')->name('subscription.')->group(function () {
     Route::post('/notification', [SubscriptionPaymentController::class, 'handleNotification'])
         ->name('notification');
 
+    Route::post('/ipaymu/notification', [SubscriptionPaymentController::class, 'handleNotification'])
+        ->name('ipaymu.notification');
+
     Route::get('/finish', [SubscriptionPaymentController::class, 'finish'])
         ->name('finish');
 
     Route::get('/error', [SubscriptionPaymentController::class, 'error'])
         ->name('error');
 });
+
+Route::post('/cashier/pos/ipaymu-notification', [PosController::class, 'handleIpaymuNotification'])
+    ->name('pos.ipaymu.notification');
 
 // Root redirect based on role
 Route::get('/', function () {

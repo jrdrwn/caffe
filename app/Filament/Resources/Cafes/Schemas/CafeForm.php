@@ -132,28 +132,27 @@ class CafeForm
                                 ->label('Tipe QRIS')
                                 ->options([
                                     'manual' => 'Manual (Scan Statis / Foto)',
-                                    'doku' => 'Otomatis (Doku Dynamic QRIS / Checkout Link)',
+                                    'ipaymu' => 'Otomatis (iPaymu QRIS / Checkout Link)',
                                 ])
                                 ->required()
                                 ->live(),
 
                             Grid::make(2)
                                 ->schema([
-                                    TextInput::make('doku_client_id')
-                                        ->label('Doku Client ID')
-                                        ->placeholder('MCH-xxxxxxxxxxxx')
-                                        ->required(fn ($get) => $get('qris_type') === 'doku'),
-                                    TextInput::make('doku_secret_key')
-                                        ->label('Doku Secret Key')
+                                    TextInput::make('ipaymu_va')
+                                        ->label('iPaymu Virtual Account (VA)')
+                                        ->placeholder('Nomor VA iPaymu')
+                                        ->required(fn ($get) => $get('qris_type') === 'ipaymu'),
+                                    TextInput::make('ipaymu_api_key')
+                                        ->label('iPaymu API Key')
                                         ->password()
                                         ->revealable()
-                                        ->placeholder('SK-xxxxxxxxxxxx')
-                                        ->required(fn ($get) => $get('qris_type') === 'doku'),
-                                    Toggle::make('doku_is_production')
+                                        ->required(fn ($get) => $get('qris_type') === 'ipaymu'),
+                                    Toggle::make('ipaymu_is_production')
                                         ->label('Production Mode')
                                         ->default(false),
                                 ])
-                                ->visible(fn ($get) => $get('qris_type') === 'doku'),
+                                ->visible(fn ($get) => $get('qris_type') === 'ipaymu'),
                         ]),
                 ]),
             ]);

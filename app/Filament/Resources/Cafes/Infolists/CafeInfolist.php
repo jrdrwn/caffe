@@ -73,23 +73,23 @@ class CafeInfolist
                                 ->label('Tipe QRIS')
                                 ->formatStateUsing(fn (string $state): string => match ($state) {
                                     'manual' => 'Manual (Scan Statis)',
-                                    'doku' => 'Otomatis (Doku)',
+                                    'ipaymu' => 'Otomatis (iPaymu)',
                                     default => $state,
                                 })
                                 ->badge()
-                                ->color(fn (string $state): string => $state === 'doku' ? 'success' : 'gray'),
+                                ->color(fn (string $state): string => $state === 'ipaymu' ? 'success' : 'gray'),
 
-                            TextEntry::make('doku_client_id')
-                                ->label('Doku Client ID')
+                            TextEntry::make('ipaymu_va')
+                                ->label('iPaymu VA')
                                 ->placeholder('Tidak diset')
-                                ->visible(fn ($record) => $record->qris_type === 'doku'),
+                                ->visible(fn ($record) => $record->qris_type === 'ipaymu'),
 
-                            TextEntry::make('doku_is_production')
-                                ->label('Mode Doku')
+                            TextEntry::make('ipaymu_is_production')
+                                ->label('Mode iPaymu')
                                 ->formatStateUsing(fn (bool $state): string => $state ? 'Produksi (Live)' : 'Sandbox (Testing)')
                                 ->badge()
                                 ->color(fn (bool $state): string => $state ? 'danger' : 'info')
-                                ->visible(fn ($record) => $record->qris_type === 'doku'),
+                                ->visible(fn ($record) => $record->qris_type === 'ipaymu'),
                         ]),
 
                     Section::make('Langganan')
