@@ -6,6 +6,7 @@ use App\Models\Cafe;
 use App\Models\InventoryLog;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
+use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use App\Services\IpaymuService;
@@ -37,6 +38,25 @@ class PosController extends Controller
 
         try {
             return DB::transaction(function () use ($user, $cartDetails, $paymentMethod, $totalAmount, $discountAmount, $taxAmount, $serviceAmount, $paidAmount, $changeAmount) {
+                $requestedQuantities = [];
+                foreach ($cartDetails as $detail) {
+                    $productId = $detail['product']->id;
+                    $requestedQuantities[$productId] = ($requestedQuantities[$productId] ?? 0) + $detail['qty'];
+                }
+
+                $lockedProducts = Product::where('cafe_id', $user->cafe_id)
+                    ->whereIn('id', array_keys($requestedQuantities))
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+
+                foreach ($requestedQuantities as $productId => $quantity) {
+                    $product = $lockedProducts->get($productId);
+                    if (! $product || ! $product->is_active || $product->stock < $quantity) {
+                        throw new \RuntimeException('Stok produk berubah. Perbarui keranjang dan coba lagi.');
+                    }
+                }
 
                 // Transaction status mirrors payment settlement:
                 // cash = completed immediately; debit/qris = pending until confirmed
@@ -57,7 +77,7 @@ class PosController extends Controller
                 ]);
 
                 foreach ($cartDetails as $detail) {
-                    $product = $detail['product'];
+                    $product = $lockedProducts->get($detail['product']->id);
                     $qty = $detail['qty'];
 
                     TransactionItem::create([
@@ -177,16 +197,21 @@ class PosController extends Controller
     public function cancelOrder(string $transactionNumber)
     {
         $user = Auth::user();
-        $transaction = Transaction::where('transaction_number', $transactionNumber)
-            ->where('cafe_id', $user->cafe_id)
-            ->where('status', 'pending')
-            ->first();
 
-        if (! $transaction) {
-            return response()->json(['message' => 'Transaksi tidak ditemukan atau sudah diproses.'], 404);
-        }
+        return DB::transaction(function () use ($transactionNumber, $user) {
+            $transaction = Transaction::where('transaction_number', $transactionNumber)
+                ->where('cafe_id', $user->cafe_id)
+                ->lockForUpdate()
+                ->first();
 
-        DB::transaction(function () use ($transaction, $user) {
+            if (! $transaction || $transaction->status !== 'pending') {
+                return response()->json(['message' => 'Transaksi tidak ditemukan atau sudah diproses.'], 404);
+            }
+
+            if ($transaction->payments()->whereNotNull('gateway_transaction_id')->exists()) {
+                return response()->json(['message' => 'Pembayaran iPaymu sedang diproses. Tunggu notifikasi pembayaran.'], 409);
+            }
+
             $transaction->update(['status' => 'cancelled']);
             $transaction->payments()->update(['status' => 'failed']);
 
@@ -211,9 +236,9 @@ class PosController extends Controller
                     ]);
                 }
             }
-        });
 
-        return response()->json(['success' => true, 'message' => 'Pesanan berhasil dibatalkan dan stok telah kembali.']);
+            return response()->json(['success' => true, 'message' => 'Pesanan berhasil dibatalkan dan stok telah kembali.']);
+        });
     }
 
     public function handleIpaymuNotification(Request $request)
@@ -237,7 +262,7 @@ class PosController extends Controller
     {
         $orderId = $request->input('order_id');
 
-        Log::info('iPaymu POS finish redirect triggered', ['order_id' => $orderId, 'query' => $request->all()]);
+        Log::info('iPaymu POS finish redirect triggered', ['order_id' => $orderId]);
 
         return redirect('/cashier')
             ->with('info', 'Status pembayaran akan diperbarui setelah notifikasi iPaymu diterima.');

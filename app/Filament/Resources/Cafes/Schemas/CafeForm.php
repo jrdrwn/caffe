@@ -7,7 +7,6 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -126,7 +125,7 @@ class CafeForm
                                 ->nullable(),
                         ]),
                     Section::make('Payment Gateway (QRIS)')
-                        ->description('Konfigurasi bagaimana QRIS diproses.')
+                        ->description('Mode iPaymu mengikuti konfigurasi server: '.(config('ipaymu.is_production') ? 'Produksi (Live)' : 'Sandbox (Testing)').'.')
                         ->schema([
                             Select::make('qris_type')
                                 ->label('Tipe QRIS')
@@ -142,15 +141,14 @@ class CafeForm
                                     TextInput::make('ipaymu_va')
                                         ->label('iPaymu Virtual Account (VA)')
                                         ->placeholder('Nomor VA iPaymu')
-                                        ->required(fn ($get) => $get('qris_type') === 'ipaymu'),
+                                        ->helperText('Pada mode production, VA dari konfigurasi server digunakan.')
+                                        ->required(fn ($get) => $get('qris_type') === 'ipaymu' && ! config('ipaymu.is_production')),
                                     TextInput::make('ipaymu_api_key')
                                         ->label('iPaymu API Key')
                                         ->password()
                                         ->revealable()
-                                        ->required(fn ($get) => $get('qris_type') === 'ipaymu'),
-                                    Toggle::make('ipaymu_is_production')
-                                        ->label('Production Mode')
-                                        ->default(false),
+                                        ->helperText('Pada mode production, kredensial server digunakan untuk semua cafe.')
+                                        ->required(fn ($get) => $get('qris_type') === 'ipaymu' && ! config('ipaymu.is_production')),
                                 ])
                                 ->visible(fn ($get) => $get('qris_type') === 'ipaymu'),
                         ]),

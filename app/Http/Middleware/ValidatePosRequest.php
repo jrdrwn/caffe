@@ -31,6 +31,11 @@ class ValidatePosRequest
             return response()->json(['message' => 'Keranjang tidak boleh kosong.'], 422);
         }
 
+        $paymentMethod = $request->input('payment_method');
+        if (! in_array($paymentMethod, ['cash', 'debit', 'qris'], true)) {
+            return response()->json(['message' => 'Metode pembayaran tidak valid.'], 422);
+        }
+
         $cafe = $user->cafe;
         $taxRate = (int) ($cafe?->tax_percentage ?? 0);
         $serviceRate = (int) ($cafe?->service_charge_percentage ?? 0);
@@ -38,8 +43,13 @@ class ValidatePosRequest
         $subtotal = 0;
         $calculatedDiscount = 0;
         $cartDetails = [];
+        $requestedQuantities = [];
 
         foreach ($cart as $item) {
+            if (! is_array($item) || ! isset($item['id'], $item['qty']) || filter_var($item['id'], FILTER_VALIDATE_INT) === false || filter_var($item['qty'], FILTER_VALIDATE_INT) === false || (int) $item['qty'] < 1) {
+                return response()->json(['message' => 'Produk dan jumlah pesanan tidak valid.'], 422);
+            }
+
             $product = Product::where('id', $item['id'])
                 ->where('cafe_id', $user->cafe_id)
                 ->first();
@@ -53,7 +63,8 @@ class ValidatePosRequest
             }
 
             $qty = (int) $item['qty'];
-            if ($qty > $product->stock) {
+            $requestedQuantities[$product->id] = ($requestedQuantities[$product->id] ?? 0) + $qty;
+            if ($requestedQuantities[$product->id] > $product->stock) {
                 return response()->json(['message' => "Stok tidak cukup untuk produk: {$product->name}."], 422);
             }
 
@@ -87,6 +98,10 @@ class ValidatePosRequest
                 'server_total' => $totalAmount,
                 'received_total' => $paidAmount,
             ], 422);
+        }
+
+        if ($paymentMethod !== 'cash' && $paidAmount !== $totalAmount) {
+            return response()->json(['message' => 'Jumlah pembayaran digital harus sama dengan total tagihan.'], 422);
         }
 
         // Attach validated data to request for controller to use

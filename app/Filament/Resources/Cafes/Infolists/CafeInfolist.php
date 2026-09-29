@@ -86,9 +86,9 @@ class CafeInfolist
 
                             TextEntry::make('ipaymu_is_production')
                                 ->label('Mode iPaymu')
-                                ->formatStateUsing(fn (bool $state): string => $state ? 'Produksi (Live)' : 'Sandbox (Testing)')
+                                ->formatStateUsing(fn (): string => config('ipaymu.is_production') ? 'Produksi (Live)' : 'Sandbox (Testing)')
                                 ->badge()
-                                ->color(fn (bool $state): string => $state ? 'danger' : 'info')
+                                ->color(fn (): string => config('ipaymu.is_production') ? 'danger' : 'info')
                                 ->visible(fn ($record) => $record->qris_type === 'ipaymu'),
                         ]),
 

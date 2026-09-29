@@ -141,3 +141,70 @@ test('it requires the iPaymu transaction ID for a testable QRIS payment', functi
     expect(fn () => app(IpaymuService::class)->generateQris($transaction))
         ->toThrow(RuntimeException::class, 'iPaymu tidak mengembalikan ID transaksi untuk Tes Notify.');
 });
+
+test('production mode uses the configured account instead of old cafe sandbox credentials', function () {
+    config()->set([
+        'ipaymu.va' => 'production-va',
+        'ipaymu.api_key' => 'production-key',
+        'ipaymu.is_production' => true,
+        'ipaymu.api_url' => 'https://my.ipaymu.com/api/v2',
+    ]);
+
+    Http::fake([
+        'https://my.ipaymu.com/api/v2/payment/direct' => Http::response([
+            'Success' => true,
+            'Data' => [
+                'TransactionId' => 12345,
+                'ReferenceId' => 'TRX-PRODUCTION-1',
+                'Url' => 'https://my.ipaymu.com/payment/12345',
+            ],
+        ]),
+    ]);
+
+    $cafe = new Cafe(['name' => 'Cafe Test', 'ipaymu_va' => 'old-sandbox-va', 'ipaymu_api_key' => 'old-sandbox-key']);
+    $transaction = new Transaction(['transaction_number' => 'TRX-PRODUCTION-1', 'total_amount' => 10000]);
+    $transaction->setRelation('cafe', $cafe);
+
+    app(IpaymuService::class)->generateQris($transaction);
+
+    Http::assertSent(fn (Request $request): bool => $request->header('va')[0] === 'production-va');
+});
+
+test('production mode refuses to fall back to cafe sandbox credentials', function () {
+    config()->set([
+        'ipaymu.va' => '',
+        'ipaymu.api_key' => '',
+        'ipaymu.is_production' => true,
+        'ipaymu.api_url' => 'https://my.ipaymu.com/api/v2',
+    ]);
+
+    Http::fake();
+
+    $cafe = new Cafe(['name' => 'Cafe Test', 'ipaymu_va' => 'old-sandbox-va', 'ipaymu_api_key' => 'old-sandbox-key']);
+    $transaction = new Transaction(['transaction_number' => 'TRX-PRODUCTION-EMPTY', 'total_amount' => 10000]);
+    $transaction->setRelation('cafe', $cafe);
+
+    expect(fn () => app(IpaymuService::class)->generateQris($transaction))
+        ->toThrow(RuntimeException::class, 'iPaymu VA dan API key belum dikonfigurasi.');
+
+    Http::assertNothingSent();
+});
+
+test('failed iPaymu API response does not expose gateway body', function () {
+    config()->set([
+        'ipaymu.va' => 'test-va',
+        'ipaymu.api_key' => 'test-key',
+        'ipaymu.api_url' => 'https://sandbox.ipaymu.com/api/v2',
+    ]);
+
+    Http::fake([
+        'https://sandbox.ipaymu.com/api/v2/payment/direct' => Http::response('private gateway response', 502),
+    ]);
+
+    $cafe = new Cafe(['name' => 'Cafe Test']);
+    $transaction = new Transaction(['transaction_number' => 'TRX-ERROR-1', 'total_amount' => 10000]);
+    $transaction->setRelation('cafe', $cafe);
+
+    expect(fn () => app(IpaymuService::class)->generateQris($transaction))
+        ->toThrow(RuntimeException::class, 'iPaymu API error (HTTP 502).');
+});

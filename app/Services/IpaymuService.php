@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Cafe;
+use App\Models\InventoryLog;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
 use App\Models\Transaction;
@@ -30,6 +31,10 @@ class IpaymuService
     public function forCafe(Cafe $cafe): self
     {
         $service = clone $this;
+
+        if (config('ipaymu.is_production')) {
+            return $service;
+        }
 
         if (filled($cafe->ipaymu_va)) {
             $service->va = (string) $cafe->ipaymu_va;
@@ -173,6 +178,11 @@ class IpaymuService
 
         $this->forCafe(($subscriptionPayment?->cafe ?? $transaction->cafe))->verifyCallbackSignature($payload, $headers);
 
+        $expectedAmount = $subscriptionPayment?->amount ?? $transaction->total_amount;
+        if ($status === 'success' && isset($payload['amount']) && (! is_numeric($payload['amount']) || (int) $payload['amount'] !== (int) $expectedAmount)) {
+            throw new \RuntimeException('iPaymu payment amount does not match the order.');
+        }
+
         DB::transaction(function () use ($referenceId, $status, $transactionId, $payload, $subscriptionPayment, $transaction): void {
             if ($subscriptionPayment) {
                 $payment = SubscriptionPayment::whereKey($subscriptionPayment->id)->lockForUpdate()->firstOrFail();
@@ -198,13 +208,42 @@ class IpaymuService
 
             if ($transaction) {
                 $order = Transaction::whereKey($transaction->id)->lockForUpdate()->firstOrFail();
+                $payment = $order->payments()->whereHas('paymentMethod', fn ($query) => $query->where('type', 'qris'))->first();
 
-                if ($order->status !== 'completed') {
+                if (! $payment || ($transactionId !== null && $payment->gateway_transaction_id !== null && $payment->gateway_transaction_id !== $transactionId)) {
+                    throw new \RuntimeException('iPaymu transaction does not match the POS payment.');
+                }
+
+                if ($order->status === 'pending') {
                     $order->update(['status' => $status === 'success' ? 'completed' : ($status === 'failed' ? 'cancelled' : 'pending')]);
-                    $order->payments()->update([
+                    $payment->update([
                         'status' => $status,
-                        'gateway_transaction_id' => $transactionId ?? $order->payments()->latest()->first()?->gateway_transaction_id,
+                        'gateway_transaction_id' => $transactionId ?? $payment->gateway_transaction_id,
                     ]);
+
+                    if ($status === 'failed') {
+                        foreach ($order->items as $item) {
+                            $product = $item->product()->lockForUpdate()->first();
+                            if (! $product) {
+                                continue;
+                            }
+
+                            $before = $product->stock;
+                            $product->increment('stock', $item->quantity);
+                            InventoryLog::create([
+                                'cafe_id' => $order->cafe_id,
+                                'product_id' => $product->id,
+                                'action' => 'adjustment',
+                                'quantity_change' => $item->quantity,
+                                'quantity_before' => $before,
+                                'quantity_after' => $product->stock,
+                                'reference_id' => $order->id,
+                                'reference_type' => 'transaction',
+                                'notes' => 'POS iPaymu payment failed - stock returned',
+                                'created_by' => $order->cashier_id,
+                            ]);
+                        }
+                    }
                 }
             }
         });
@@ -319,9 +358,8 @@ class IpaymuService
             Log::error('iPaymu API error', [
                 'path' => $path,
                 'status' => $response->status(),
-                'body' => $response->body(),
             ]);
-            throw new \RuntimeException('iPaymu API error: '.$response->body());
+            throw new \RuntimeException('iPaymu API error (HTTP '.$response->status().').');
         }
 
         return $response->json();

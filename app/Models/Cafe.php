@@ -34,12 +34,18 @@ class Cafe extends Model
         'ipaymu_is_production',
     ];
 
+    protected $hidden = [
+        'ipaymu_api_key',
+        'midtrans_server_key',
+    ];
+
     protected $casts = [
         'tax_percentage' => 'integer',
         'service_charge_percentage' => 'integer',
         'is_active' => 'boolean',
         'midtrans_is_production' => 'boolean',
         'ipaymu_is_production' => 'boolean',
+        'ipaymu_api_key' => 'encrypted',
     ];
 
     protected static function booted()
